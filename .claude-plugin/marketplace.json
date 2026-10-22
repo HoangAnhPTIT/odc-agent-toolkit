@@ -1,0 +1,25 @@
+{
+  "name": "odc-agent-toolkit",
+  "owner": {
+    "name": "HoangAnhPTIT",
+    "url": "https://github.com/HoangAnhPTIT"
+  },
+  "metadata": {
+    "description": "Community tools for working on OutSystems Developer Cloud (ODC) apps with Claude Code. Not affiliated with OutSystems.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "odc-agent-toolkit",
+      "source": "./",
+      "description": "Field-tested workflow, graph reader and Studio build-guide kit for OutSystems Developer Cloud (ODC) with the OutSystems MCP server. Includes Mobile app support (read-only over MCP).",
+      "version": "0.1.0",
+      "author": {
+        "name": "HoangAnhPTIT"
+      },
+      "license": "MIT",
+      "keywords": ["outsystems", "odc", "low-code", "mcp", "mentor", "mobile"],
+      "category": "development"
+    }
+  ]
+}

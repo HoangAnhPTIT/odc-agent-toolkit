@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order Notes Guide</title>
+<!-- Template from odc-agent-toolkit (MIT). Light / dark colours follow the reader's system setting. -->
+<style>
+  :root{--bg:#f4f6f8;--card:#fff;--text:#171f29;--muted:#5b6670;--line:#e2e6eb;--primary:#005ca6;--code:#f1f4f7;--accent:#0092af;--step:#e6f0f7}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#11161c;--card:#1a2129;--text:#e8edf2;--muted:#9aa6b2;--line:#2b3540;--primary:#5aa7e6;--code:#222b35;--accent:#40c0cd;--step:#1d2a38}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:80vw;margin:0 auto;padding:32px 16px 64px}
+  h1{font-size:28px;margin:0 0 4px}
+  h2{font-size:21px;margin:44px 0 12px;padding-top:12px;border-top:2px solid var(--line)}
+  h3{font-size:16px;margin:26px 0 8px;color:var(--primary)}
+  h4{font-size:15px;margin:18px 0 6px}
+  p.lead{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:12px 0;overflow-x:auto}
+  code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px}
+  pre{background:var(--code);padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5;margin:0}
+  pre.code{max-height:420px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0} th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  td code{white-space:nowrap}
+  a{color:var(--primary)}
+  .tree{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre;overflow-x:auto;line-height:1.55}
+  ol li,ul li{margin:4px 0}
+  .codebar{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+  .copy{font:600 12px system-ui,sans-serif;color:#fff;background:var(--primary);border:0;border-radius:6px 6px 0 0;padding:5px 12px;cursor:pointer}
+  .copy.alt{background:var(--accent)}
+  .codelabel{font:600 12px system-ui,sans-serif;color:var(--muted);margin-right:auto;align-self:flex-end}
+  .legend{border-left:4px solid var(--accent);background:var(--card);padding:10px 14px;border-radius:6px;margin:12px 0}
+  .ask{border-left:4px solid #d0021b}
+  .steps{counter-reset:s;list-style:none;padding:0}
+  .steps>li{counter-increment:s;position:relative;padding:8px 12px 8px 44px;background:var(--card);border:1px solid var(--line);border-radius:8px;margin:6px 0}
+  .steps>li::before{content:counter(s);position:absolute;left:10px;top:8px;width:24px;height:24px;border-radius:50%;background:var(--step);color:var(--primary);font:700 12px/24px system-ui;text-align:center}
+  .order{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:0;list-style:none;counter-reset:o}
+  .order li{counter-increment:o;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0}
+  .order li::before{content:counter(o) ". ";font-weight:700;color:var(--primary)}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;background:var(--step);color:var(--primary);vertical-align:middle}
+  .tag.post{background:#fdecec;color:#cf1f25}
+  .toc{columns:2;column-gap:32px;margin:0;padding-left:18px} @media (max-width:640px){.toc{columns:1}}
+  @media (max-width:900px){main{max-width:none}}
+  .inl{position:relative}
+  .inl pre{padding:8px 10px;white-space:pre-wrap;word-break:break-word;font-size:12.5px}
+  .inl .copy{position:absolute;top:4px;right:4px;border-radius:5px;padding:3px 9px;font-size:11px}
+  details.jsonbox{background:var(--code);border-radius:0 0 8px 8px}
+  details.jsonbox summary{cursor:pointer;padding:6px 14px;color:var(--muted);font-size:12.5px}
+  .cc{cursor:copy;position:relative;transition:background .15s,box-shadow .15s}
+  .cc:hover{box-shadow:inset 0 0 0 1px var(--accent)}
+  .cc.is-copied{background:var(--step)!important;box-shadow:inset 0 0 0 1px var(--primary)}
+  .cc.is-copied::after{content:"Copied";position:absolute;top:2px;right:4px;font:600 11px system-ui,sans-serif;color:#fff;background:var(--primary);padding:1px 8px;border-radius:4px}
+  .grid-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow-x:auto}
+  table.grid{margin:0;font-size:13px;min-width:820px}
+  table.grid thead th{position:sticky;top:0;background:var(--card);z-index:1;border-bottom:2px solid var(--line)}
+  table.grid td{padding:3px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.grid tbody tr:hover{background:var(--code)}
+  td.gl{width:1%;white-space:nowrap}
+  td.gl pre{background:none;padding:4px 0;margin:0;font:12.5px/1.5 ui-monospace,Consolas,monospace;overflow:visible}
+  td.gr{min-width:420px}
+  .prop{display:flex;align-items:flex-start;gap:8px;padding:3px 0}
+  .prop + .prop{border-top:1px dashed var(--line)}
+  .pl{flex:0 0 96px;color:var(--muted);font:600 11.5px/22px system-ui,sans-serif}
+  .prop code.pv{flex:1;background:var(--code);padding:3px 8px;border-radius:5px;font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .prop.is-note .pv{flex:1;color:var(--muted);font-size:12.5px;line-height:22px}
+  .prop .copy{flex:none;border-radius:5px;padding:3px 9px;font-size:11px;margin-top:1px}
+  /* Copy progress: copied values stay marked (saved in this browser), the last one copied is outlined. */
+  :root{--done:#e3f4e8;--done-line:#2e9e5b;--last:#ffd23f}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--done:#1d3326;--done-line:#4cc27f;--last:#e0b100}}
+  .is-done{background:var(--done)!important;box-shadow:inset 3px 0 0 var(--done-line)}
+  tr.is-done-row td.gl{box-shadow:inset 4px 0 0 var(--done-line)}
+  tr.is-done-row td.gl pre{color:var(--done-line)}
+  .copy.is-done{background:var(--done-line)!important;box-shadow:none}
+  .is-last{outline:3px solid var(--last);outline-offset:1px;scroll-margin:40vh 0}
+  tr.is-last-row{background:var(--code)}
+  .progress-bar{position:fixed;right:16px;bottom:16px;z-index:10;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 8px;box-shadow:0 4px 16px rgba(0,0,0,.15);font:600 12px system-ui,sans-serif}
+  .progress-bar span{color:var(--muted);padding:0 4px}
+  .progress-bar button{font:600 12px system-ui,sans-serif;border:0;border-radius:6px;padding:5px 10px;cursor:pointer;color:#fff;background:var(--primary)}
+  .progress-bar button.ghost{background:none;color:var(--muted);border:1px solid var(--line)}
+  .progress-bar button:disabled{opacity:.4;cursor:default}
+  /* Index: built from the h2 / h3 of the page. Fixed on the left on wide screens, a button on narrow ones. */
+  h1,h2,h3{scroll-margin-top:16px}
+  td code.cc{white-space:pre-wrap;word-break:break-word}
+  .toc-side{position:fixed;top:0;left:0;bottom:0;width:290px;z-index:20;display:flex;flex-direction:column;background:var(--card);border-right:1px solid var(--line);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .toc-head{display:flex;align-items:center;gap:8px;padding:14px 14px 8px}
+  .toc-head b{font-size:14px;margin-right:auto}
+  .toc-head button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font:600 12px system-ui,sans-serif}
+  .toc-filter{margin:0 14px 8px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:13px system-ui,sans-serif}
+  .toc-list{list-style:none;margin:0;padding:0 8px 24px;overflow-y:auto;flex:1}
+  .toc-list ul{list-style:none;margin:0 0 4px;padding:0 0 0 12px;display:none}
+  .toc-list li{margin:0}
+  .toc-list li.is-open > ul,.toc-side.is-filtering .toc-list ul{display:block}
+  .toc-list a{display:block;padding:4px 8px;border-radius:6px;color:var(--text);text-decoration:none}
+  .toc-list > li > a{font-weight:600}
+  .toc-list ul a{color:var(--muted)}
+  .toc-list a:hover{background:var(--code)}
+  .toc-list a.is-active{background:var(--step);color:var(--primary)}
+  .toc-list li.is-hidden{display:none}
+  .toc-toggle{position:fixed;left:16px;bottom:16px;z-index:21;display:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:8px 12px;font:600 13px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+  @media (min-width:1280px){ main{margin-left:300px;max-width:min(1500px,calc(100vw - 340px))} .toc-head .toc-close{display:none} }
+  @media (max-width:1279px){ .toc-side{transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 24px rgba(0,0,0,.2)} .toc-side.is-open{transform:none} .toc-toggle{display:block} }
+</style>
+</head>
+<body>
+<main>
+  <!-- Example output of the odc-studio-guide skill, for a fictional Mobile app. Not a real project. -->
+  <h1>Acme Orders: order notes (ORD-42)</h1>
+  <p class="lead">Spec <b>ORD-42 v1.0, Order notes</b> (1 Jan 2030). Read top to bottom: every section is one piece of work in ODC Studio, in build order. Structures come with JSON samples; click any value to copy it (copied values stay green, the bar at the bottom right jumps back to the last one).</p>
+
+  <div class="legend"><b>The flow in one paragraph.</b> On the order card the user taps <b>Add note</b>, types up to 200 characters and taps <b>Save</b>. The note is saved on the server and shown under the order total. An empty note removes it.</div>
+
+  <h3 style="margin-top:20px">Build order</h3>
+  <ol class="order">
+    <li><a href="#spec">Spec and current app</a></li>
+    <li><a href="#remove">Remove the old version</a></li>
+    <li><a href="#data">Structures and server actions</a></li>
+    <li><a href="#ui">Block OrderCard</a></li>
+    <li><a href="#css">CSS</a></li>
+    <li><a href="#check">Test and open questions</a></li>
+  </ol>
+
+  <!-- ============================================================ -->
+  <h2 id="spec">1. Spec and current app</h2>
+  <h3>1.1 Requirement to build step</h3>
+  <table>
+    <tr><th>Requirement</th><th>What it asks</th><th>Built in</th></tr>
+    <tr><td>AC1</td><td>Every order card has an <b>Add note</b> link (or <b>Edit note</b> when a note exists).</td><td><a href="#ui">4</a></td></tr>
+    <tr><td>AC2</td><td>Note up to 200 characters; empty note removes it.</td><td><a href="#data">3.2</a>, <a href="#ui">4.2</a></td></tr>
+  </table>
+
+  <h3>1.2 Current app (Acme Orders revision 57, read through context_graph on 1 Jan 2030)</h3>
+  <table>
+    <tr><th>Where</th><th>What it does now</th><th>Change</th></tr>
+    <tr><td>Block <code>OrderCard</code></td><td>Input <code>Order</code> (OrderItem). Shows number, date, total. Link <code>LegacyRemark</code> opens a popup that is never saved.</td><td>Section 4</td></tr>
+    <tr><td>Server</td><td>No action saves a note.</td><td>Section 3</td></tr>
+  </table>
+
+  <!-- ============================================================ -->
+  <h2 id="remove">2. Remove the old version</h2>
+  <p>Do this first so nothing still calls the old elements. Wherever Studio then reports a broken reference, remove it.</p>
+  <table>
+    <tr><th>Where</th><th>Remove</th></tr>
+    <tr><td>Block <code>OrderCard</code></td><td>Link <code>LegacyRemark</code>, client action <code>LegacyRemarkOnClick</code>, local <code>IsRemarkOpen</code>.</td></tr>
+  </table>
+
+  <!-- ============================================================ -->
+  <h2 id="data">3. Structures and server actions</h2>
+  <h3>3.1 Structure <code>SaveNoteResult</code></h3>
+  <p>Result of saving a note. Data tab, Structures: create it from the JSON sample or by hand:</p>
+  <table>
+    <tr><th>Attribute</th><th>Data type</th><th>Note</th></tr>
+    <tr><td><code>IsSuccess</code></td><td>Boolean</td><td></td></tr>
+    <tr><td><code>Message</code></td><td>Text</td><td>Shown when IsSuccess is False</td></tr>
+  </table>
+<div class="codebar"><span class="codelabel">SaveNoteResult (sample)</span><button class="copy" data-target="j-0">Copy JSON</button><button class="copy alt" data-target="j-0" data-mode="literal">Copy as text literal</button></div><details class="jsonbox"><summary>Show JSON</summary><pre class="code" id="j-0">{
+  &quot;IsSuccess&quot;: true,
+  &quot;Message&quot;: &quot;&quot;
+}</pre></details>
+
+  <h3>3.2 Server action <code>SaveOrderNote</code></h3>
+  <table>
+    <tr><th></th><th>Name</th><th>Type</th><th>Note</th></tr>
+    <tr><td>Input</td><td><code>OrderId</code></td><td>Long Integer</td><td><code>Order.Id</code></td></tr>
+    <tr><td>Input</td><td><code>Note</code></td><td>Text</td><td>Trimmed here, not on the client</td></tr>
+    <tr><td>Output</td><td><code>Result</code></td><td>SaveNoteResult</td><td></td></tr>
+  </table>
+<table><tr><th>#</th><th>Node</th><th>Value</th></tr>
+<tr><td>1</td><td>If</td><td>Condition <code class="cc" title="Click to copy">Length(Trim(Note)) &gt; 200</code>: True goes to 2, False to 3</td></tr>
+<tr><td>2</td><td>Assign, then End</td><td><code>Result.Message</code> = <code class="cc" title="Click to copy">"A note can have up to 200 characters."</code></td></tr>
+<tr><td>3</td><td>Server action <code>Order_SetNote</code></td><td><code>Id =</code> <code class="cc" title="Click to copy">OrderId</code>, <code>Note =</code> <code class="cc" title="Click to copy">Trim(Note)</code></td></tr>
+<tr><td>4</td><td>Assign</td><td><code>Result.IsSuccess</code> = <code class="cc" title="Click to copy">True</code></td></tr>
+</table>
+
+  <!-- ============================================================ -->
+  <h2 id="ui">4. Block <code>OrderCard</code></h2>
+  <h3>4.1 Inputs, events, local variables</h3>
+  <table>
+    <tr><th></th><th>Name</th><th>Type</th><th>Note</th></tr>
+    <tr><td>Input</td><td><code>Order</code></td><td>OrderItem</td><td>Unchanged</td></tr>
+    <tr><td>Event <span class="tag">new</span></td><td><code>OnNoteSaved</code></td><td></td><td>Input <code>Note</code> (Text). Is Mandatory = No</td></tr>
+    <tr><td>Local <span class="tag">new</span></td><td><code>IsEditing</code></td><td>Boolean</td><td>Default False</td></tr>
+    <tr><td>Local <span class="tag">new</span></td><td><code>DraftNote</code></td><td>Text</td><td></td></tr>
+  </table>
+
+  <h3>4.2 Client action <code>SaveNoteOnClick</code></h3>
+<table><tr><th>#</th><th>Node</th><th>Value</th></tr>
+<tr><td>1</td><td>Server action <code>SaveOrderNote</code></td><td><code>OrderId =</code> <code class="cc" title="Click to copy">Order.Id</code>, <code>Note =</code> <code class="cc" title="Click to copy">DraftNote</code></td></tr>
+<tr><td>2</td><td>If</td><td>Condition <code class="cc" title="Click to copy">SaveOrderNote.Result.IsSuccess</code>: True goes to 3, False to Message (Error) <code class="cc" title="Click to copy">SaveOrderNote.Result.Message</code></td></tr>
+<tr><td>3</td><td>Assign</td><td><code>IsEditing</code> = <code class="cc" title="Click to copy">False</code></td></tr>
+<tr><td>4</td><td>Trigger Event</td><td><code>OnNoteSaved</code>, <code>Note =</code> <code class="cc" title="Click to copy">Trim(DraftNote)</code></td></tr>
+<tr><td>5</td><td>Exception Handler (All Exceptions)</td><td>Message (Error) <code class="cc" title="Click to copy">"Couldn't save the note. Check your connection and try again."</code></td></tr>
+</table>
+
+  <h3>4.3 Widget tree and expressions</h3>
+  <p>Add the note area after the Container that shows the total. Everything above it stays as it is.</p>
+<div class="grid-wrap"><table class="grid"><thead><tr><th>Widget</th><th>Property and value (click a value to copy it)</th></tr></thead><tbody>
+<tr><td class="gl"><pre>Container (note area)</pre></td><td class="gr"><div class="prop"><span class="pl">Style Classes</span><code class="pv cc" title="Click to copy">"order-note" + If(IsEditing, " is-editing", "")</code></div></td></tr>
+<tr><td class="gl"><pre>├─ If (not editing)</pre></td><td class="gr"><div class="prop"><span class="pl">Condition</span><code class="pv cc" title="Click to copy">not IsEditing</code></div></td></tr>
+<tr><td class="gl"><pre>│  ├─ True: Expression</pre></td><td class="gr"><div class="prop"><span class="pl">Value</span><code class="pv cc" title="Click to copy">Order.Note</code></div><div class="prop"><span class="pl">Visible</span><code class="pv cc" title="Click to copy">Order.Note &lt;&gt; ""</code></div><div class="prop"><span class="pl">Style Classes</span><code class="pv cc" title="Click to copy">"order-note-text"</code></div></td></tr>
+<tr><td class="gl"><pre>│  └─ True: Link</pre></td><td class="gr"><div class="prop"><span class="pl">On Click</span><code class="pv cc" title="Click to copy">StartEditNote</code></div><div class="prop is-note"><span class="pl">Note</span><span class="pv">New client action StartEditNote: one Assign, DraftNote = Order.Note and IsEditing = True</span></div></td></tr>
+<tr><td class="gl"><pre>│     └─ Expression</pre></td><td class="gr"><div class="prop"><span class="pl">Value</span><code class="pv cc" title="Click to copy">If(Order.Note = "", "Add note", "Edit note")</code></div></td></tr>
+<tr><td class="gl"><pre>└─ False: Input NoteInput</pre></td><td class="gr"><div class="prop"><span class="pl">Variable</span><code class="pv cc" title="Click to copy">DraftNote</code></div><div class="prop"><span class="pl">Max length</span><code class="pv cc" title="Click to copy">200</code></div><div class="prop"><span class="pl">aria-label</span><code class="pv cc" title="Click to copy">"Order note"</code></div><div class="prop is-note"><span class="pl">Note</span><span class="pv">aria-label goes in the Input's Attributes. Add a Button "Save" next to it, On Click = SaveNoteOnClick</span></div></td></tr>
+</tbody></table></div>
+
+  <!-- ============================================================ -->
+  <h2 id="css">5. CSS</h2>
+  <table>
+    <tr><th>Class</th><th>What it does</th></tr>
+    <tr><td><code>.order-note-text</code></td><td><code>display: block</code> (an Expression renders as a span), 8px above, muted colour, wraps long words.</td></tr>
+  </table>
+
+  <!-- ============================================================ -->
+  <h2 id="check">6. Test and open questions</h2>
+  <h3>6.1 Scenarios</h3>
+  <table>
+    <tr><th>#</th><th>Do</th><th>Correct when</th></tr>
+    <tr><td>1</td><td>Order without a note: tap Add note, type, Save</td><td>Note shows under the total; the link now says Edit note</td></tr>
+    <tr><td>2</td><td>Clear the note and Save</td><td>Note disappears; the link says Add note</td></tr>
+    <tr><td>3</td><td>Airplane mode, then Save</td><td>Error message; the input keeps the text</td></tr>
+  </table>
+
+  <h3>6.2 Open questions (built as in the "Building as" column)</h3>
+  <div class="card ask">
+  <table>
+    <tr><th>#</th><th>Question</th><th>Building as</th></tr>
+    <tr><td>Q1</td><td>Can a store user edit a note written by head office?</td><td>Yes, anyone who sees the order</td></tr>
+  </table>
+  </div>
+</main>
+
+
+<script>
+/* Copy values without an id get one (cc-1, cc-2 ...) so the copy progress can remember them.
+   Set an id by hand only on an element that a .copy button targets (data-target). */
+document.querySelectorAll('.cc:not([id])').forEach((el, i) => { el.id = 'cc-' + (i + 1); });
+</script>
+<script>
+/* Copy = the text as shown. "Copy as text literal" = wrapped in quotes with " doubled, on one line: paste it as the Default Value of a Text variable. */
+document.querySelectorAll('.copy').forEach(b => b.onclick = async () => {
+  const el = document.getElementById(b.dataset.target);
+  let text = el.textContent;
+  if (b.dataset.mode === 'literal') text = '"' + JSON.stringify(JSON.parse(text)).replace(/"/g, '""') + '"';
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+  const old = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = old, 1500);
+  markDone(b.dataset.target);
+});
+/* Click any value / expression / code block (.cc) to copy it. A drag-selection is left alone. */
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+}
+document.addEventListener('click', async e => {
+  const el = e.target.closest('.cc');
+  if (!el || String(getSelection()).length) return;
+  if (e.shiftKey) { unmarkDone(el.id); return; }
+  await copyText(el.textContent);
+  el.classList.add('is-copied');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('is-copied'), 1200);
+  markDone(el.id);
+});
+
+/* Copy progress. Everything copied stays green, the last copy is outlined in yellow, and the
+   bottom-right bar jumps back to it. Saved in localStorage, so it survives a reload.
+   Shift+click a value to unmark it. */
+const KEY = 'odc-guide-copied:' + location.pathname;
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || { done: [], last: '' }; } catch (e) { return { done: [], last: '' }; } };
+const save = s => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} };
+let state = load();
+const total = document.querySelectorAll('.cc[id], .copy[data-target]').length;
+
+function targetsOf(id) {
+  const el = document.getElementById(id);
+  if (!el) return [];
+  return [el, ...document.querySelectorAll('.copy[data-target="' + id + '"]')];
+}
+function paint() {
+  document.querySelectorAll('.is-done, .is-done-row, .is-last, .is-last-row').forEach(n => n.classList.remove('is-done', 'is-done-row', 'is-last', 'is-last-row'));
+  state.done.forEach(id => targetsOf(id).forEach(n => {
+    n.classList.add('is-done');
+    const tr = n.closest('table.grid tr'); if (tr) tr.classList.add('is-done-row');
+  }));
+  const last = document.getElementById(state.last);
+  if (last) {
+    const box = last.closest('details.jsonbox') || last;
+    box.classList.add('is-last');
+    const tr = last.closest('table.grid tr'); if (tr) tr.classList.add('is-last-row');
+  }
+  count.textContent = document.querySelectorAll('.cc.is-done, .copy.is-done').length + ' / ' + total + ' copied';
+  jump.disabled = !last;
+  reset.disabled = !state.done.length;
+}
+function markDone(id) {
+  if (!id) return;
+  if (!state.done.includes(id)) state.done.push(id);
+  state.last = id; save(state); paint();
+}
+function unmarkDone(id) {
+  state.done = state.done.filter(x => x !== id);
+  if (state.last === id) state.last = state.done[state.done.length - 1] || '';
+  save(state); paint();
+}
+function jumpToLast() {
+  const el = document.getElementById(state.last);
+  if (!el) return;
+  const box = el.closest('details.jsonbox');
+  if (box) box.open = true;
+  (box || el).scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+const bar = document.createElement('div');
+bar.className = 'progress-bar';
+bar.innerHTML = '<span></span><button type="button">Jump to last copied</button><button type="button" class="ghost">Reset</button>';
+document.body.appendChild(bar);
+const [count, jump, reset] = bar.children;
+jump.onclick = jumpToLast;
+reset.onclick = () => { if (confirm('Clear all copied marks?')) { state = { done: [], last: '' }; save(state); paint(); } };
+window.addEventListener('storage', e => { if (e.key === KEY) { state = load(); paint(); } });
+paint();
+if (state.last) setTimeout(jumpToLast, 300);
+</script>
+<script>
+/* Index: every h2 (section) and h3 (step) of the page, with a filter box. The current section is
+   highlighted while scrolling and its steps are expanded. Headings without an id get one here,
+   so any step can be linked (copy the link from the index). */
+(function () {
+  const main = document.querySelector('main');
+  const used = new Set([...document.querySelectorAll('[id]')].map(e => e.id));
+  const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
+  const label = h => h.textContent.replace(/\s+/g, ' ').trim();
+  let num = '';
+  const heads = [...main.querySelectorAll('h1, h2, h3')].map(h => {
+    if (h.tagName === 'H2') num = (label(h).match(/^(\d+[a-z]?)\./) || [])[1] || '';
+    if (!h.id) {
+      let base = 'h-' + (num ? num + '-' : '') + slug(label(h)), id = base, i = 2;
+      while (used.has(id)) id = base + '-' + i++;
+      h.id = id; used.add(id);
+    }
+    return h;
+  });
+
+  /* tree: h1 (overview) and h2 at the top, h3 under the h2 before it */
+  const top = [];
+  heads.forEach(h => {
+    if (h.tagName === 'H3' && top.length) top[top.length - 1].kids.push(h);
+    else top.push({ h, kids: [] });
+  });
+  const link = h => `<a href="#${h.id}" data-id="${h.id}">${label(h).replace(/</g, '&lt;')}</a>`;
+  const nav = document.createElement('nav');
+  nav.className = 'toc-side'; nav.setAttribute('aria-label', 'Index');
+  nav.innerHTML = `<div class="toc-head"><b>Index</b><button type="button" class="toc-all">Expand all</button><button type="button" class="toc-close" aria-label="Close index">✕</button></div>
+<input class="toc-filter" type="search" placeholder="Filter, e.g. OnSave…" aria-label="Filter the index">
+<ul class="toc-list">${top.map(t => `<li>${link(t.h)}${t.kids.length ? `<ul>${t.kids.map(k => `<li>${link(k)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ul>`;
+  document.body.appendChild(nav);
+  const toggle = document.createElement('button');
+  toggle.className = 'toc-toggle'; toggle.type = 'button'; toggle.textContent = '☰ Index';
+  document.body.appendChild(toggle);
+  toggle.onclick = () => nav.classList.toggle('is-open');
+  nav.querySelector('.toc-close').onclick = () => nav.classList.remove('is-open');
+  const allBtn = nav.querySelector('.toc-all');
+  let expandAll = false;
+  allBtn.onclick = () => {
+    expandAll = !expandAll; allBtn.textContent = expandAll ? 'Collapse' : 'Expand all';
+    nav.querySelectorAll('.toc-list > li').forEach(li => li.classList.toggle('is-open', expandAll || li.classList.contains('is-current')));
+  };
+  nav.addEventListener('click', e => { if (e.target.closest('a') && innerWidth < 1280) nav.classList.remove('is-open'); });
+
+  /* filter: keep the sections / steps whose text matches */
+  const filter = nav.querySelector('.toc-filter');
+  filter.addEventListener('input', () => {
+    const q = filter.value.trim().toLowerCase();
+    nav.classList.toggle('is-filtering', q !== '');
+    nav.querySelectorAll('.toc-list > li').forEach(li => {
+      const kids = [...li.querySelectorAll('ul li')];
+      kids.forEach(k => k.classList.toggle('is-hidden', q !== '' && !k.textContent.toLowerCase().includes(q)));
+      const self = li.firstElementChild.textContent.toLowerCase().includes(q);
+      li.classList.toggle('is-hidden', q !== '' && !self && kids.every(k => k.classList.contains('is-hidden')));
+      if (self && q !== '') kids.forEach(k => k.classList.remove('is-hidden'));
+    });
+  });
+
+  /* scroll spy */
+  const links = new Map([...nav.querySelectorAll('a[data-id]')].map(a => [a.dataset.id, a]));
+  let ticking = false, last = null;
+  function spy() {
+    ticking = false;
+    let cur = heads[0];
+    for (const h of heads) { if (h.getBoundingClientRect().top <= 90) cur = h; else break; }
+    if (cur === last) return;
+    last = cur;
+    nav.querySelectorAll('a.is-active').forEach(a => a.classList.remove('is-active'));
+    nav.querySelectorAll('li.is-current').forEach(li => { li.classList.remove('is-current'); if (!expandAll) li.classList.remove('is-open'); });
+    const a = links.get(cur.id); if (!a) return;
+    a.classList.add('is-active');
+    const group = a.closest('.toc-list > li');
+    group.classList.add('is-current', 'is-open');
+    const list = nav.querySelector('.toc-list'), r = a.getBoundingClientRect(), lr = list.getBoundingClientRect();
+    if (r.top < lr.top || r.bottom > lr.bottom) list.scrollTop += r.top - lr.top - lr.height / 3;
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
+  addEventListener('hashchange', spy);
+  spy();
+})();
+</script>
+</body>
+</html>

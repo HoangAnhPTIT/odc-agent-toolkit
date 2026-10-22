@@ -1,0 +1,16 @@
+# Raw ODC model exports: they contain an app's model, never commit them
+*.mcp-response.json
+*.xre.json
+*.dot
+graph/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

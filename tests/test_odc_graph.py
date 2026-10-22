@@ -1,0 +1,218 @@
+"""Tests for skills/odc-graph/scripts/odc_graph.py on a small synthetic graph (no real app model)."""
+import contextlib
+import hashlib
+import importlib.util
+import io
+import json
+import os
+import tempfile
+import unittest
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+spec = importlib.util.spec_from_file_location('odc_graph', os.path.join(ROOT, 'skills', 'odc-graph', 'scripts', 'odc_graph.py'))
+odc_graph = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(odc_graph)
+
+
+def sha10(text):
+    return hashlib.sha1(text.encode('utf-8')).hexdigest()[:10]
+
+
+class Builder:
+    def __init__(self):
+        self.nodes, self.src, self.dst, self.attr = [], [], [], []
+
+    def node(self, _type, **kw):
+        self.nodes.append(dict(_type=_type, **kw))
+        return len(self.nodes) - 1
+
+    def edge(self, s, t, _type, parent=True, **kw):
+        a = dict(_type=_type, **kw)
+        if parent:
+            a['relationType'] = 'Parent'
+        self.src.append(s)
+        self.dst.append(t)
+        self.attr.append(a)
+
+    def link(self, s, t, ctype):
+        self.src.append(s)
+        self.dst.append(t)
+        self.attr.append({'_type': 'Connector', 'connectorType': 'Links.' + ctype})
+
+    def graph(self):
+        return {'v': '3.1', 'nodes': self.nodes, 'edgeSrc': self.src, 'edgeDst': self.dst, 'edgeAttr': self.attr}
+
+
+def sample_graph():
+    b = Builder()
+    text_t = b.node('IBasicType', Name='Text')
+    # Server action Calc(A) with local B: B = A + "x"; If B = "secret" -> End
+    act = b.node('IServerAction', Name='Calc', Description='demo action')
+    a = b.node('IInputParameter', Name='A', IsMandatory=True)
+    b.edge(act, a, 'InputParameters', index=0)
+    b.edge(a, text_t, 'DataType', parent=False)
+    loc = b.node('ILocalVariable', Name='B')
+    b.edge(act, loc, 'LocalVariables', index=0)
+    start = b.node('IStartNode', Name='Start')
+    assign = b.node('IAssignNode', Label='SetB')
+    asg = b.node('IAssignment', DisplayName='B = A + "x"')
+    b.edge(assign, asg, 'Assignments', index=0)
+    if_ = b.node('IIfNode', DisplayName='B = ...?')
+    cond = b.node('ExpressionAST')
+    b.edge(if_, cond, 'Condition')
+    eq = b.node('BinaryOperation', Operator='Eq')
+    b.edge(cond, eq, 'Root')
+    left = b.node('Identifier')
+    b.edge(eq, left, 'LeftOperand')
+    b.edge(left, loc, 'ReferedObject', parent=False)
+    right = b.node('Text', TextLength=6, TextHash=sha10('secret'), TextCategory='Others')
+    b.edge(eq, right, 'RightOperand')
+    end = b.node('IEndNode', Name='End')
+    for i, n in enumerate((start, assign, if_, end)):
+        b.edge(act, n, 'obj.Nodes', index=i)
+    b.link(start, assign, 'Sequence')
+    b.link(assign, if_, 'Sequence')
+    b.link(if_, end, 'True')
+    b.link(if_, end, 'False')
+    # Block Card with input Item: Container "Box" (Style Classes "card") > Expression Item.Name, Visible = unresolved ref
+    blk = b.node('IMobileBlock', Name='Card')
+    item = b.node('IInputParameter', Name='Item')
+    b.edge(blk, item, 'InputParameters', index=0)
+    box = b.node('OutSystems.Plugin.NRWidgets.Container', Name='Box', Width='(fill parent)')
+    b.edge(blk, box, 'Widgets', index=0)
+    style = b.node('ExpressionAST')
+    b.edge(box, style, 'Style', parent=False)  # Style Classes hang on a plain edge
+    b.edge(style, b.node('Text', TextValue='card', TextHash='card'), 'Root')
+    ex = b.node('OutSystems.Plugin.NRWidgets.Expression', Name=None)
+    b.edge(box, ex, 'Widgets', index=0)
+    val = b.node('ExpressionAST')
+    b.edge(ex, val, 'Value')
+    cid = b.node('CompoundIdentifier')
+    b.edge(val, cid, 'Root')
+    b.edge(cid, item, 'ReferedObject', parent=False)
+    part = b.node('Identifier')
+    b.edge(cid, part, 'IdentifierPart')
+    attr = b.node('IStructureAttribute', Name='Name')
+    b.edge(part, attr, 'ReferedObject', parent=False)
+    vis = b.node('ExpressionAST')
+    b.edge(ex, vis, 'Visible')
+    unresolved = b.node('Identifier')
+    b.edge(vis, unresolved, 'Root')
+    b.edge(unresolved, b.node('Text', TextValue='ignored', TextHash='ignored'), 'ReferedObject', parent=False)
+    # Structure Item(Name: Text)
+    st = b.node('IStructure', Name='Item')
+    b.edge(st, attr, 'Attributes', index=0)
+    b.edge(attr, text_t, 'DataType', parent=False)
+    return b.graph()
+
+
+def response(xre_text, header=None, extra=()):
+    blocks = []
+    if header is not None:
+        blocks.append({'type': 'text', 'text': json.dumps(header)})
+    blocks.append({'type': 'text', 'text': xre_text})
+    blocks += [{'type': 'text', 'text': t} for t in extra]
+    return blocks
+
+
+def run(argv):
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = odc_graph.main(argv)
+    return code, out.getvalue()
+
+
+class OdcGraphTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.xre = json.dumps(sample_graph())
+        self.header = {'app_key': 'demo', 'revision': 7, 'latest_revision': 7, 'root': 'Calc', 'page': 1,
+                       'has_more': False, 'blocks': ['xre']}
+        self.path = self.write('resp.json', response(self.xre, self.header))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, name, data):
+        p = os.path.join(self.tmp.name, name)
+        with open(p, 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+        return p
+
+    def test_outline_of_action(self):
+        code, out = run([self.path, '--text', '--only', 'Calc'])
+        self.assertEqual(code, 0)
+        self.assertIn('=== ServerAction Calc', out)
+        self.assertIn('In     A: Text mandatory', out)
+        self.assertIn('B = A + "x"', out)
+        self.assertIn(f'Condition: (B = <text len 6 sha1 {sha10("secret")}>)', out)
+        self.assertIn('[True] End End', out)
+        self.assertIn('<- back to End', out)
+
+    def test_guess_resolves_hashed_literal(self):
+        _, out = run([self.path, '--text', '--only', 'Calc', '--guess', 'secret'])
+        self.assertIn('Condition: (B = "secret")', out)
+
+    def test_widget_tree(self):
+        _, out = run([self.path, '--text', '--only', 'Card'])
+        self.assertIn('Container Box', out)
+        self.assertIn('. Style Classes: "card"', out)
+        self.assertIn('. Value: Item.Name', out)
+        self.assertIn('. Visible: ?', out)          # unresolved reference
+        self.assertNotIn('(fill parent)', out)      # default noise hidden
+        _, out = run([self.path, '--text', '--only', 'Card', '--keep-defaults'])
+        self.assertIn('Width: (fill parent)', out)
+
+    def test_list(self):
+        _, out = run([self.path, '--list'])
+        self.assertIn('MobileBlock', out)
+        self.assertIn('ServerAction           Calc', out)
+        self.assertIn('Structure              Item (1 attributes)', out)
+
+    def test_paged_answer_and_graphviz(self):
+        half = len(self.xre) // 2
+        h1 = dict(self.header, has_more=True, blocks=['xre', 'graphviz'])
+        h2 = dict(self.header, page=2, has_more=False, blocks=['xre', 'graphviz'])
+        p1 = self.write('p1.json', response(self.xre[:half], h1, extra=['digraph {']))
+        p2 = self.write('p2.json', response(self.xre[half:], h2, extra=['}']))
+        out_dir = os.path.join(self.tmp.name, 'saved')
+        code, out = run([p1, p2, '--list', '--save-dir', out_dir, '--name', 'Demo_rev7_root-Calc'])
+        self.assertEqual(code, 0)
+        self.assertIn('Calc', out)
+        with open(os.path.join(out_dir, 'Demo_rev7_root-Calc.xre.json'), encoding='utf-8') as f:
+            self.assertEqual(f.read(), self.xre)
+        with open(os.path.join(out_dir, 'Demo_rev7_root-Calc.dot'), encoding='utf-8') as f:
+            self.assertEqual(f.read(), 'digraph {}')
+        for k, src in ((1, p1), (2, p2)):
+            with open(src, 'rb') as a, open(os.path.join(out_dir, f'Demo_rev7_root-Calc.page{k}.mcp-response.json'), 'rb') as b:
+                self.assertEqual(a.read(), b.read())
+
+    def test_joined_xre_and_headerless_answer(self):
+        joined = os.path.join(self.tmp.name, 'g.xre.json')
+        with open(joined, 'w', encoding='utf-8') as f:
+            f.write(self.xre)
+        _, out = run([joined, '--list'])
+        self.assertIn('Calc', out)
+        bare = self.write('bare.json', response(self.xre))
+        _, out = run([bare, '--list'])
+        self.assertIn('Calc', out)
+
+    def test_html(self):
+        page = os.path.join(self.tmp.name, 'g.html')
+        code, _ = run([self.path, '--html', page])
+        self.assertEqual(code, 0)
+        with open(page, encoding='utf-8') as f:
+            text = f.read()
+        self.assertTrue(text.startswith('<!doctype html>'))
+        self.assertIn('B = A + &quot;x&quot;', text)
+        self.assertIn('Structures', text)
+
+    def test_no_match_message(self):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            run([self.path, '--text', '--only', 'Nope'])
+        self.assertIn('no element matches', err.getvalue())
+
+
+if __name__ == '__main__':
+    unittest.main()
