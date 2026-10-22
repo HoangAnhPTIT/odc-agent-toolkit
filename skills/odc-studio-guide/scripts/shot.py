@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 CANDIDATES = [
     r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
@@ -39,6 +39,18 @@ def browsers(explicit=None):
         if c and (c in (explicit, os.environ.get('ODC_BROWSER')) or os.path.exists(c)) and c not in found:
             found.append(c)
     return found
+
+
+def to_url(page):
+    """A URL stays as it is. A file path may carry ?query and #fragment for the page's own script;
+    they are kept after the file URL. None when the file does not exist."""
+    if '://' in page:
+        return page
+    cut = min([i for i in (page.find('?'), page.find('#')) if i >= 0], default=len(page))
+    path, rest = page[:cut], page[cut:]
+    if not os.path.exists(path):
+        return None
+    return pathlib.Path(path).resolve().as_uri() + rest
 
 
 def stop(proc):
@@ -80,7 +92,7 @@ def shoot(browser, page, out, width, height, timeout):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Screenshot an HTML file with a headless browser and a timeout.')
-    ap.add_argument('page', help='HTML file path or URL (a #fragment is allowed)')
+    ap.add_argument('page', help='HTML file path or URL; a ?query is kept (e.g. preview.html?role=staff&store=0)')
     ap.add_argument('out', help='PNG file to write')
     ap.add_argument('--width', type=int, default=500)
     ap.add_argument('--height', type=int, default=1200)
@@ -88,10 +100,13 @@ def main(argv=None):
     ap.add_argument('--timeout', type=int, default=30, help='seconds per browser (default 30)')
     ap.add_argument('--version', action='version', version=__version__)
     a = ap.parse_args(argv)
-    page = a.page
-    if '://' not in page:
-        path, _, frag = page.partition('#')
-        page = pathlib.Path(path).resolve().as_uri() + ('#' + frag if frag else '')
+    page = to_url(a.page)
+    if page is None:
+        print(f'error: {a.page} does not exist', file=sys.stderr)
+        return 2
+    if '#' in page:
+        print('note: headless Chrome / Edge usually paint a page scrolled to a #fragment as a blank image. '
+              'Prefer a ?query state the page reads, or a tall --height shot.', file=sys.stderr)
     out = str(pathlib.Path(a.out).resolve())
     if os.path.exists(out):
         os.remove(out)

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 (2026-10-22)
+
+From a blind field test: an agent rebuilt a real Mobile-app feature guide using only this plugin.
+
+- `odc_graph.py --text`: prints a block's own events with their inputs, prints structures (`--only <Structure>`), and adds `Node text:` (the If's DisplayName) when a condition holds unresolved names.
+- `shot.py`: keeps a `?query` on file paths (preview states), refuses a missing file, warns that `#fragment` shots come out blank in headless browsers.
+- `odc-graph`: what to do with small inline answers; where real client-variable names survive; nested `.gitignore` option.
+- `odc-workflow` / `odc-studio-guide`: Mobile apps have no app Settings; Layout placeholders wrap content in their own `div` (ellipsis needs `min-width: 0`); check which flows set a client variable; preview states from the URL query and a self-test state; the checker's limits stated; template UI strings may be translated.
+
 ## 0.1.1 (2026-10-22)
 
 Fixes from an independent review against the ODC docs and the OutSystems MCP tool descriptions.

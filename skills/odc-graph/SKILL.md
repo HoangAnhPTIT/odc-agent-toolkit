@@ -15,7 +15,8 @@ The script lives next to this file: `<skill-dir>/scripts/odc_graph.py`, where `<
 - One call at a time. Parallel calls hit the per-replica budget (`server_busy`, a CapacityError): retry with backoff.
 - Errors (from the tool description): `graph_pending` (the newest revision is not processed yet, normal right after a publish: retry in about a minute), `graph_store_warming` (about 30 s), `graph_root_not_found` (fix the root name), `graph_root_unsupported`, `graph_cursor_invalid` (restart without a cursor), and `graph_source_too_large`: the graph is too big or too densely linked for a `root` or `graphviz` call; read whole-app pages instead, **without** `root` and `graphviz`.
 - Paged answers: while the header says `has_more: true`, call again with `cursor = next_cursor` and the same `key`, `root` and `graphviz`, then pass every page file to the script, in order.
-- The answer is normally too large for the context, so the host saves it to a file (Claude Code: under `~/.claude/projects/<project>/<session>/tool-results/`, named after the tool). Do not read or grep that file directly; use the script.
+- A large answer is saved to a file by the host (Claude Code: under `~/.claude/projects/<project>/<session>/tool-results/`, named after the tool). Do not read or grep that file directly; use the script.
+- A small root (a single client function or action) can come back **inline**, as a header block and an XRE block in the conversation. Read `IAssignment` / `IIfNode` `DisplayName` directly, or write the XRE block's text to a `.xre.json` file and run the script on it (needed for `--guess` and `--save-dir`).
 
 ## 2. Use the script
 
@@ -24,7 +25,8 @@ G="<file the host saved>"            # several files for a paged answer, in orde
 P="<skill-dir>/scripts/odc_graph.py"
 python "$P" "$G" --list                              # screens, blocks, actions, data actions, structures
 python "$P" "$G" --text --only "Orders\OnSave"       # outline: parameters, flow, every expression
-python "$P" "$G" --text --only OrderCard             # block: inputs, widget tree with Style Classes, events
+python "$P" "$G" --text --only OrderCard             # block: inputs, its own events, widget tree with Style Classes, handlers
+python "$P" "$G" --text --only OrderItem             # structure: attributes and types
 python "$P" "$G" --html "$OUT/orders.html"           # browsable page with a filter box
 python "$P" "$G" --save-dir "$OUT" --name MyApp_rev57_root-Orders     # keep the raw files
 python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confirm a literal stored as a hash
@@ -32,7 +34,7 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 
 - `--only` matches a substring of the qualified name (`Screen\Action`), case-insensitive.
 - `--save-dir` copies the response file(s) unchanged and writes the joined `.xre.json` (and `.dot` when you asked for `graphviz`). Name files `<App>_rev<revision>_root-<Root>`; the `header:` line gives the revision.
-- **Raw graphs are the client's model.** Pick `$OUT` outside the repository, or add `graph/`, `*.xre.json`, `*.mcp-response.json` to the project's `.gitignore` before saving inside it.
+- **Raw graphs are the client's model.** Pick `$OUT` outside the repository, or make sure git ignores it first: add `graph/`, `*.xre.json`, `*.mcp-response.json` to the project's `.gitignore`, or put a `.gitignore` containing `*` inside the output folder.
 - `--keep-defaults` also prints `Visible: True`, `Enabled: True`, `Width: (fill parent)`.
 
 ## 3. What the graph holds
@@ -45,7 +47,7 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 - Text literals are either `TextValue` (plain) or only `TextLength` + `TextHash`, where the hash is the first 10 hex digits of the SHA-1 of the UTF-8 text. *Observed:* which form you get varies by asset and context: a Mobile app screen graph kept most UI literals as `TextValue`, a library graph kept all of them as hashes. A hash can be confirmed, not reversed: `sha1("")[:10] = da39a3ee5e`.
 - A widget's Style Classes hang on a plain `Style` edge (no `relationType`). Extended properties (attributes) are `IExtendedProperty{Property}` → `Value`.
 - Reactive Web and Mobile apps both use `IMobileScreen` / `IMobileBlock`; client screen actions are `IClientScreenAction`.
-- References the graph could not resolve (client variables, static entity records, some list `Current`s, elements from other modules) point at a Text node; the script prints `?`. Take the real name from Studio or an earlier guide; never guess it.
+- References the graph could not resolve (client variables, static entity records, some list `Current`s, elements from other modules) point at a placeholder Text node (*observed*: the same one for all of them); the script prints `?`. The real names usually survive in plain text: an Assign line prints its `DisplayName` (`Client.SelectedStoreCode = StoreCode`), and for an If the script adds `Node text:` with the If's `DisplayName` (the condition as typed, unless the node was given a name). Widget expressions have no such text: take those names from Studio or an earlier guide; never guess them.
 
 ## 4. Limits
 

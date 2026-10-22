@@ -99,6 +99,11 @@ def sample_graph():
     unresolved = b.node('Identifier')
     b.edge(vis, unresolved, 'Root')
     b.edge(unresolved, b.node('Text', TextValue='ignored', TextHash='ignored'), 'ReferedObject', parent=False)
+    ev = b.node('IBlockEvent', Name='OnPick', IsMandatory=True)
+    b.edge(blk, ev, 'Events', index=0)
+    ev_in = b.node('IInputParameter', Name='Code')
+    b.edge(ev, ev_in, 'InputParameters', index=0)
+    b.edge(ev_in, text_t, 'DataType', parent=False)
     # Structure Item(Name: Text)
     st = b.node('IStructure', Name='Item')
     b.edge(st, attr, 'Attributes', index=0)
@@ -162,6 +167,13 @@ class OdcGraphTest(unittest.TestCase):
         self.assertNotIn('(fill parent)', out)      # default noise hidden
         _, out = run([self.path, '--text', '--only', 'Card', '--keep-defaults'])
         self.assertIn('Width: (fill parent)', out)
+
+    def test_block_events_and_structure_outline(self):
+        _, out = run([self.path, '--text', '--only', 'Card'])
+        self.assertIn('Event  OnPick: (Code: Text) mandatory', out)
+        _, out = run([self.path, '--text', '--only', 'Item'])
+        self.assertIn('=== Structure Item', out)
+        self.assertIn('  Name: Text', out)
 
     def test_list(self):
         _, out = run([self.path, '--list'])

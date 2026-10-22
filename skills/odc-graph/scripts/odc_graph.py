@@ -30,7 +30,7 @@ import shutil
 import sys
 from collections import defaultdict
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -219,7 +219,13 @@ class Graph:
                     dn = self.expr(self.child(a, 'Variable')) + ' = ' + self.expr(self.child(a, 'Value'))
                 lines.append(dn)
         elif t == 'IIfNode':
-            lines.append('Condition: ' + self.expr(self.child(i, 'Condition')))
+            cond = self.expr(self.child(i, 'Condition'))
+            lines.append('Condition: ' + cond)
+            dn = (n.get('DisplayName') or '').rstrip('?').strip()
+            if '?' in cond and dn and dn != n.get('Label'):
+                # unresolved references print as ?; the If's DisplayName is either the condition as typed
+                # (real names included) or the node's own name
+                lines.append('Node text: ' + dn)
         elif t == 'IForEachNode':
             lines.append('Record List: ' + self.expr(self.child(i, 'RecordList')))
         elif t == 'IJavaScriptNode':
@@ -274,11 +280,16 @@ class Graph:
                 if dv:
                     extra.append('default ' + dv)
                 r.append((kind, self.name(t), self.dtype(t), ', '.join(extra), self.N[t].get('Description') or ''))
+        for t, _ in self.kids(c, 'Events'):  # a block's own events (Trigger Event targets) and their inputs
+            if self.N[t]['_type'] == 'IBlockEvent':
+                ins = ', '.join(f'{self.name(p)}: {self.dtype(p)}'.rstrip(': ') for p, _ in self.kids(t, 'InputParameters'))
+                extra = 'mandatory' if self.N[t].get('IsMandatory') in (True, 'True') else ''
+                r.append(('Event', self.name(t), f'({ins})', extra, self.N[t].get('Description') or ''))
         for t, a in self.out[c]:
             if self.N[t]['_type'] in ('IUILifeCycleEvent', 'IOnSyncStartEvent', 'IOnSyncCompleteEvent', 'IOnSyncErrorEvent'):
                 h = self.ref(t, ('Destination', 'Action', 'Handler'))
                 if h:
-                    r.append(('Event', self.name(t), '', '-> ' + h, ''))
+                    r.append(('On', self.name(t), '', '-> ' + h, ''))
         if self.N[c].get('Fetch'):
             r.append(('Fetch', self.N[c]['Fetch'], '', '', ''))
         return r
@@ -331,12 +342,12 @@ class Graph:
             wid(t, 0)
         return rows
 
-    def structures(self):
+    def structures(self, only=None):
         r = []
         for i, n in enumerate(self.N):
-            if n['_type'] == 'IStructure':
+            if n['_type'] == 'IStructure' and (not only or only.lower() in self.name(i).lower()):
                 r.append((self.name(i), [(self.name(t), self.dtype(t)) for t, a in self.kids(i, 'Attributes')]))
-        return r
+        return sorted(r, key=lambda x: x[0].lower())
 
     def containers(self, only=None):
         cs = [i for i, n in enumerate(self.N) if n['_type'] in CONTAINERS]
@@ -475,15 +486,20 @@ def main(argv=None):
         save(a.graph, header, body, dot, a.save_dir, a.name)
     G = Graph(g, a.guess)
     cs = G.containers(a.only)
-    if a.only and not cs:
+    st = G.structures(a.only)
+    if a.only and not cs and not st:
         print(f'no element matches "{a.only}"; run --list', file=sys.stderr)
     if a.list:
         for c in cs:
             print(f'{short(G.N[c]["_type"]):22} {G.qual(c)}')
-        for s, attrs in G.structures():
+        for s, attrs in st:
             print(f'{"Structure":22} {s} ({len(attrs)} attributes)')
     if a.text:
         text_out(G, cs, a.keep_defaults)
+        for s, attrs in st:
+            print(f'\n=== Structure {s}')
+            for nm, ty in attrs:
+                print(f'  {nm}: {ty}')
     if a.html:
         title = a.name or (f'{header.get("root") or "graph"} rev {header.get("revision", "")}' if header else os.path.basename(a.graph[0]))
         html_out(G, cs, a.html, title, a.keep_defaults)

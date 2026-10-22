@@ -22,7 +22,7 @@ Files of this skill (`<skill-dir>` = the base directory shown when this skill lo
 3. **Copy the template** to the project: `<topic>-guide.html`.
 4. **Write in build order**: spec and current app (app name, **revision**, date you read the graph) → remove the old version → structures, entities, server actions → client functions → blocks → screens (data actions, handlers, widget tree) → CSS → test scenarios and open questions. Drop sections you do not need; keep h2 numbers consecutive and h3 numbers as `<h2>.<n>`.
 5. Every Studio step answers three questions: **where** (flow, screen or block, then placeholder, then parent widget), **what** (add, delete, rename, change a property), **value** (a copy cell).
-6. **Check**: `python <skill-dir>/scripts/check_guide.py <topic>-guide.html` must report 0 ERROR. Read every warning. Add `--conventions` when the project follows the optional conventions of `odc-workflow` section 10.
+6. **Check**: `python <skill-dir>/scripts/check_guide.py <topic>-guide.html` must report 0 ERROR. Read every warning. Add `--conventions` when the project follows the optional conventions of `odc-workflow` section 10. The checker validates syntax and page structure only: it does not know whether a name exists in the app (that is step 1 and step 9), and its "replaced by" check reads English only.
 7. New UI: build a preview page with the app's real CSS and look at it (section "Preview").
 8. **Hand over**: the file path, a short list of what the user must do, and the open questions with the assumption you built on.
 9. **After the user builds and publishes**: read the new revision's graph and compare it with the guide, item by item (names, expressions, Style Classes, node order). Report differences.
@@ -46,7 +46,7 @@ Files of this skill (`<skill-dir>` = the base directory shown when this skill lo
 
 A copy cell is any element with class `cc`. The template's first script gives ids (`cc-1`, `cc-2` …) to copy cells that have none; set an id by hand only on an element a `.copy` button targets (`data-target`). Click copies, the value turns green, Shift+click unmarks it; progress is kept in the browser's localStorage per page.
 
-The template marks every value to fill as `{{...}}`; the checker reports any that are left.
+The template marks every value to fill as `{{...}}`; the checker reports any that are left. The scripts' few UI strings (Index, Expand all, Collapse, Jump to last copied, Reset, copied, the filter placeholder) are English; translating those strings to the guide's language is fine, but leave the logic as it is.
 
 ## Writing values (small mistakes this prevents)
 - A copy cell must paste into Studio as-is: valid OutSystems syntax, ASCII outside literals (no `−` `–` `“ ”`), literals as `"..."` with `""` for a quote inside.
@@ -59,9 +59,13 @@ The template marks every value to fill as `{{...}}`; the checker reports any tha
 - Server actions: say which version is a **mock** (now) and which is the **real** one (when the API exists).
 - `Max` / `Min` return Decimal. Assigning to an Integer truncates implicitly; `DecimalToInteger(...)` rounds half to even. Write the one you mean.
 - Roles: use the generated `Check<RoleName>Role()` functions (for example `CheckManagerRole()`), never invented variables.
-- CSS: Expression and Text render as `<span>`, so a class that needs vertical margin, width, text-align, ellipsis or its own line must set `display`. Do not reuse OutSystems UI class names (`main-content`, `sidebar`, `header`, `content`, `footer`, `main`, `layout`); link colours need `!important`.
+- CSS: Expression and Text render as `<span>`, so a class that needs vertical margin, width, text-align, ellipsis or its own line must set `display`. Layout placeholders (Title, HeaderRight …) wrap their content in their own `div`; inside the header's flex row that div keeps its content width, so an ellipsis inside it only works once the placeholder div gets `min-width: 0` (*observed*). Do not reuse OutSystems UI class names (`main-content`, `sidebar`, `header`, `content`, `footer`, `main`, `layout`); link colours need `!important`.
+- Mobile apps have no app Settings: extensibility settings replace them (docs-odc `building-apps/mobile/configuring-mobile-apps.md`). Do not design a mock or a switch around a Setting in a Mobile app.
 - Write in the reader's language; keep widget, action and property names exactly as Studio shows them.
 
 ## Preview (when the change adds UI)
 - A `<topic>-preview.html` that loads the app's real CSS and uses the tags ODC renders: Expression / Text = `span`, Container = `div`, Link = `a`, Button = `button`, If = no wrapper, block instance = `div.OSBlockWidget`, Input inside `span.input-text`.
-- Take a screenshot and look at it: `python <skill-dir>/scripts/shot.py <topic>-preview.html out.png --width 500 --height 1200` (about 500 px wide for phone, 1400 px for desktop; `page.html#anchor` scrolls to an element). It finds Edge, Chrome or Chromium, stops a browser that hangs after `--timeout` seconds and tries the next one, so the shell never blocks. Write the PNG outside the repository (a scratch folder).
+- Let the preview switch states from its URL query (`?role=staff&store=0&closed=1`, `?demo=error`), so each state can be screenshotted without clicking.
+- Take a screenshot and look at it: `python <skill-dir>/scripts/shot.py "<topic>-preview.html?role=staff&store=0" out.png --width 500 --height 1200` (about 500 px wide for phone, 820 for iPad, 1400 for desktop). It finds Edge, Chrome or Chromium, stops a browser that hangs after `--timeout` seconds and tries the next one, so the shell never blocks. Write PNGs outside the repository (a scratch folder).
+- Do not screenshot a `#fragment`: headless Chrome / Edge paint a page scrolled to an anchor as a blank image (*observed*). For a long guide take one tall shot (`--height 6000`) and crop it.
+- A preview can test itself: a `?demo=selftest` state that fires real click / input / blur events and prints the results on the page catches logic slips that a screenshot cannot.

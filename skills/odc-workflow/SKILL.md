@@ -71,6 +71,9 @@ Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `buildin
 - *Observed* runtime HTML: Expression and Text render as `<span>`, Container as `div`, Link as `a`, Button as `button`; an If adds no wrapper; a block instance is wrapped in `div.OSBlockWidget`; an Input sits inside `span.input-text`. A class on an Expression or Text that needs vertical margin, width, text-align, ellipsis or its own line must set `display` (unless the parent is flex or grid).
 - OutSystems UI already styles `main-content`, `sidebar`, `header`, `content`, `footer`, `main`, `layout`: do not reuse them for your own classes. Its `a { color: inherit !important }` means link colours need `!important`. Do not put interactive widgets (Input, Button, Upload) inside a Link. (Vendor design-to-app gotchas, `theme-collisions.md`, `widget-link-slot.md`.)
 - *Observed:* Studio rejects an output parameter that has the same name as an input parameter of the same action.
+- Mobile apps have no app Settings: "In mobile apps, extensibility settings replace ODC app settings" (docs-odc `building-apps/mobile/configuring-mobile-apps.md`). Do not plan a Setting as a switch or mock in a Mobile app.
+- *Observed:* Layout placeholders (Title, HeaderRight …) wrap their content in their own `div`; in the header's flex row it keeps its content width, so an ellipsis inside it needs `min-width: 0` on that div.
+- Client variables are not indexed by the context lookups and show as `?` in graph expressions; read their names from Assign / If `DisplayName` (skill `odc-graph`). Check which flows set them before relying on one: a variable set in only one flow (for example only by a picker) is empty for users who never pass through it.
 - Library revision numbers grow with every publish; a version exists only after a Release. Consumers see a "library updates available" prompt when opened in ODC Studio (docs-odc `building-apps/libraries/libraries.md`).
 
 ## 10. Optional conventions
