@@ -207,6 +207,33 @@ class OdcGraphTest(unittest.TestCase):
         self.assertIn('B = A + &quot;x&quot;', text)
         self.assertIn('Structures', text)
 
+    def test_bom_file_and_unsafe_root_name(self):
+        header = dict(self.header, root='Orders\\OnSave:x')
+        p = os.path.join(self.tmp.name, 'bom.json')
+        with open(p, 'w', encoding='utf-8-sig') as f:  # Windows tools often write a BOM
+            json.dump(response(self.xre, header), f)
+        out_dir = os.path.join(self.tmp.name, 'saved')
+        code, out = run([p, '--save-dir', out_dir])
+        self.assertEqual(code, 0)
+        self.assertEqual(sorted(os.listdir(out_dir)), ['demo_rev7_root-Orders_OnSave_x.mcp-response.json',
+                                                      'demo_rev7_root-Orders_OnSave_x.xre.json'])
+
+    def test_save_joined_xre_keeps_its_type(self):
+        joined = os.path.join(self.tmp.name, 'g.xre.json')
+        with open(joined, 'w', encoding='utf-8') as f:
+            f.write(self.xre)
+        out_dir = os.path.join(self.tmp.name, 'saved')
+        run([joined, '--save-dir', out_dir, '--name', 'Demo'])
+        self.assertEqual(os.listdir(out_dir), ['Demo.xre.json'])
+
+    def test_unreadable_file_exits_cleanly(self):
+        p = os.path.join(self.tmp.name, 'broken.json')
+        with open(p, 'w', encoding='utf-8') as f:
+            f.write('{not json')
+        with self.assertRaises(SystemExit) as cm:
+            run([p, '--list'])
+        self.assertIn('cannot read', str(cm.exception))
+
     def test_no_match_message(self):
         err = io.StringIO()
         with contextlib.redirect_stderr(err):

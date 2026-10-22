@@ -1,18 +1,19 @@
 ---
 name: odc-studio-guide
-description: Write an HTML build guide that a developer follows in ODC Studio to make a change by hand — required for OutSystems Mobile apps (Mentor cannot load them) and for work MCP and Mentor cannot do (updating dependencies, releasing a library, pasting Theme CSS, adding a Script to a layout). Ships a template (click any value to copy it, copy progress kept per browser, automatic index) and a checker that catches broken expressions and pages before hand-over.
+description: Write an HTML build guide that a developer follows in ODC Studio to make a change by hand — required for OutSystems Mobile apps (Mentor cannot load them) and for work only ODC Studio or the Portal can do (managing dependencies, releasing a library). Ships a template (click any value to copy it, copy progress kept per browser, automatic index), a checker that catches broken expressions and pages before hand-over, and a headless screenshot helper.
 ---
 
 # ODC Studio build guide
 
-Files next to this one (`<skill-dir>` = the base directory shown when this skill loads):
+Files of this skill (`<skill-dir>` = the base directory shown when this skill loads):
 - `<skill-dir>/assets/template.html`: start every guide from it.
 - `<skill-dir>/scripts/check_guide.py`: run it before you hand the guide over.
-- A filled example: `examples/sample-guide.html` in the plugin repository.
+- `<skill-dir>/scripts/shot.py`: screenshot a guide or preview with a timeout.
+- A filled example: `<skill-dir>/../../examples/sample-guide.html`.
 
 ## When to use
 - Any change to a **MobileApplication**: `mentor_load_asset` accepts only WebApplication, Agent, Library, Workflow.
-- Work only ODC Studio or the Portal can do: update an app's dependencies, release a library, paste CSS into a Theme, add a Script to a layout (Required Scripts), end-user groups, settings.
+- Work only ODC Studio or the Portal can do: managing an app's dependencies, releasing a library, end-user groups, settings, and anything Mentor failed to do.
 - Web apps and libraries: edit through Mentor by default (skill `odc-workflow`); write a guide only when the user wants to build it themselves or Mentor cannot do it.
 
 ## Steps
@@ -21,7 +22,7 @@ Files next to this one (`<skill-dir>` = the base directory shown when this skill
 3. **Copy the template** to the project: `<topic>-guide.html`.
 4. **Write in build order**: spec and current app (app name, **revision**, date you read the graph) → remove the old version → structures, entities, server actions → client functions → blocks → screens (data actions, handlers, widget tree) → CSS → test scenarios and open questions. Drop sections you do not need; keep h2 numbers consecutive and h3 numbers as `<h2>.<n>`.
 5. Every Studio step answers three questions: **where** (flow, screen or block, then placeholder, then parent widget), **what** (add, delete, rename, change a property), **value** (a copy cell).
-6. **Check**: `python <skill-dir>/scripts/check_guide.py <topic>-guide.html` must report 0 ERROR. Read every warning.
+6. **Check**: `python <skill-dir>/scripts/check_guide.py <topic>-guide.html` must report 0 ERROR. Read every warning. Add `--conventions` when the project follows the optional conventions of `odc-workflow` section 10.
 7. New UI: build a preview page with the app's real CSS and look at it (section "Preview").
 8. **Hand over**: the file path, a short list of what the user must do, and the open questions with the assumption you built on.
 9. **After the user builds and publishes**: read the new revision's graph and compare it with the guide, item by item (names, expressions, Style Classes, node order). Report differences.
@@ -56,13 +57,11 @@ The template marks every value to fill as `{{...}}`; the checker reports any tha
 - Block instances: name the block, then each input and event handler. If widgets: the Condition, then the True and False branches.
 - Client actions: inputs / outputs / locals, Function = Yes when it is a function, then every node. When a client action calls the server, add an Exception Handler so a lost connection does not leave the UI locked.
 - Server actions: say which version is a **mock** (now) and which is the **real** one (when the API exists).
-- `Max` / `Min` return Decimal: wrap them in `DecimalToInteger(...)` when the target is an Integer.
-- Roles: use the generated `Check<RoleName>Role()` functions, never invented variables.
+- `Max` / `Min` return Decimal. Assigning to an Integer truncates implicitly; `DecimalToInteger(...)` rounds half to even. Write the one you mean.
+- Roles: use the generated `Check<RoleName>Role()` functions (for example `CheckManagerRole()`), never invented variables.
 - CSS: Expression and Text render as `<span>`, so a class that needs vertical margin, width, text-align, ellipsis or its own line must set `display`. Do not reuse OutSystems UI class names (`main-content`, `sidebar`, `header`, `content`, `footer`, `main`, `layout`); link colours need `!important`.
 - Write in the reader's language; keep widget, action and property names exactly as Studio shows them.
 
 ## Preview (when the change adds UI)
 - A `<topic>-preview.html` that loads the app's real CSS and uses the tags ODC renders: Expression / Text = `span`, Container = `div`, Link = `a`, Button = `button`, If = no wrapper, block instance = `div.OSBlockWidget`, Input inside `span.input-text`.
-- Take a screenshot with a headless browser and always a timeout (headless browsers can hang and block the shell), then look at the image:
-  `timeout 60 <chrome-or-edge> --headless --disable-gpu --virtual-time-budget=3000 --screenshot=out.png --window-size=500,1200 file:///<path>/x.html`
-  (about 500 px wide for phone, 1400 px for desktop).
+- Take a screenshot and look at it: `python <skill-dir>/scripts/shot.py <topic>-preview.html out.png --width 500 --height 1200` (about 500 px wide for phone, 1400 px for desktop; `page.html#anchor` scrolls to an element). It finds Edge, Chrome or Chromium, stops a browser that hangs after `--timeout` seconds and tries the next one, so the shell never blocks. Write the PNG outside the repository (a scratch folder).

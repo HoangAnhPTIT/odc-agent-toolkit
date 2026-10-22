@@ -30,7 +30,7 @@ BAD = '''<!doctype html><html><head><meta charset="utf-8"><title>t</title></head
 </main></body></html>'''
 
 
-def run(path, conventions=True):
+def run(path, conventions=False):
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
         ok = check_guide.check(path, conventions)
@@ -56,22 +56,35 @@ class CheckGuideTest(unittest.TestCase):
             p = os.path.join(d, 'bad.html')
             with open(p, 'w', encoding='utf-8') as f:
                 f.write(BAD)
-            ok, out = run(p)
+            ok, out = run(p, conventions=True)
             self.assertFalse(ok)
             for needle in ('link to #missing', 'JSON in #j-9 does not parse', 'curly quote outside a literal',
                            'parentheses not balanced', 'unclosed "', 'minus sign U+2212', '"?" outside a literal',
                            'hashed literal', 'unescaped "<" inside a copy value', 'version suffix', 'backslash inside a literal',
                            'sits under section 1', 'convention: delete replaced content'):
                 self.assertIn(needle, out)
-            _, quiet = run(p, conventions=False)
-            self.assertNotIn('version suffix', quiet)
-            self.assertNotIn('convention: delete replaced content', quiet)
+            _, default = run(p)  # convention warnings are opt-in
+            self.assertNotIn('version suffix', default)
+            self.assertNotIn('convention: delete replaced content', default)
+
+    def test_bom_and_empty_placeholder(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'bom.html')
+            with open(p, 'w', encoding='utf-8-sig') as f:
+                f.write('<!doctype html><html><head><meta charset="utf-8"><title>t</title></head><body><p>Note: {{}}</p></body></html>')
+            ok, out = run(p)
+            self.assertFalse(ok)
+            self.assertNotIn('missing <!doctype html>', out)
+            self.assertIn('template placeholders still in the text: {{}}', out)
 
     def test_kind_guess(self):
         g = check_guide.guess_kind
         self.assertEqual(g('Leave without saving?'), 'text')
+        self.assertEqual(g('Continue?'), 'text')
         self.assertEqual(g('CanOrder and not IsBusy'), 'expr')
         self.assertEqual(g('$actions.Refresh();\nreturn;'), 'js')
+        self.assertEqual(g('// toggle\nel.hidden = !el.hidden'), 'js')
+        self.assertEqual(g('"https://example.com/help"'), 'expr')  # a URL literal is not JavaScript
         self.assertEqual(g('Order.Total'), 'expr')
 
     def test_literal_split(self):

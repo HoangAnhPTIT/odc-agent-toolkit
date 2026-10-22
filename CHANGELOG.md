@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.1 (2026-10-22)
+
+Fixes from an independent review against the ODC docs and the OutSystems MCP tool descriptions.
+
+- `odc-workflow`: always confirm right before publish, deploy and rollback, as the tool descriptions require; publish verification now goes `publish_status` → `env_app` revision → graph; Workflow deployments need `build_key` + `revision`; Mentor cannot manage dependencies; regex advice explains the `[a-z0-9]` trade-off and the `Chr(92)` way; Decimal → Integer truncates while `DecimalToInteger` rounds half to even; server-specific details marked *observed*; conventions are opt-in.
+- `odc-graph`: correct remedy for `graph_source_too_large`; check the header `revision` (not `latest_revision`) and `revision_note`; literal storage varies by asset; advice to keep raw graphs out of repositories.
+- `odc_graph.py`: reads files with a UTF-8 BOM, exits cleanly on unreadable input, safe file names for roots such as `Screen\Action`, `--save-dir` on a joined `.xre.json` keeps its type.
+- `check_guide.py`: convention warnings are opt-in (`--conventions`), BOM pages no longer report a missing doctype, `{{}}` placeholders are caught, URLs in literals are not mistaken for JavaScript, one-word prose such as `Continue?` is not checked as an expression.
+- New `shot.py`: headless screenshot with a per-browser timeout that stops hung browsers and tries the next one (Windows, macOS, Linux).
+- Plugin icon.
+
 ## 0.1.0 (2026-10-22)
 
 First release.

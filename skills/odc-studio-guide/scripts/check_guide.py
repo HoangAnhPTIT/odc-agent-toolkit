@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Check an ODC Studio build guide (HTML) before handing it over.
 
-  python check_guide.py guide.html [more.html ...] [--no-conventions]
+  python check_guide.py guide.html [more.html ...] [--conventions]
 
 ERROR (exit code 1): breaks the page, or would paste a wrong value into ODC Studio.
-warn: worth a look (odd characters inside text literals, numbering, conventions).
+warn: worth a look (odd characters inside text literals, section numbering). --conventions adds
+opinionated warnings: version suffixes in names, "replaced by" notes.
 
 Expression checks run on click-to-copy values (elements with class "cc") that hold OutSystems
 expressions. JavaScript and plain-text values are recognised and skipped; mark an element with
@@ -19,7 +20,7 @@ import re
 import sys
 from html.parser import HTMLParser
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -32,8 +33,9 @@ KNOWN = VOID | {'html', 'head', 'title', 'style', 'script', 'body', 'main', 'nav
                 'select', 'option', 'textarea', 'form', 'fieldset', 'legend', 'figure', 'figcaption', 'svg', 'path', 'g',
                 'circle', 'rect', 'line', 'polyline', 'polygon', 'text', 'defs', 'use', 'symbol', 'blockquote', 'q', 'abbr',
                 'time', 'del', 'ins', 'iframe', 'picture', 'video', 'audio', 'canvas', 'noscript', 'template'}
-JS_HINTS = ('$parameters', '$actions', '$public', 'function', '=>', '/*', '//', 'document.', 'window.', 'var ', 'let ', 'const ', ';\n')
-PLACEHOLDER = re.compile(r'\{\{[^{}\n]{1,60}\}\}')  # the template marks every value to fill as {{...}}
+JS_HINTS = ('$parameters', '$actions', '$public', 'function', '=>', '/*', 'document.', 'window.', 'var ', 'let ', 'const ', ';\n')
+JS_COMMENT = re.compile(r'(^|\n)\s*//')  # a line comment; '//' inside a URL literal is not JavaScript
+PLACEHOLDER = re.compile(r'\{\{[^{}\n]{0,60}\}\}')  # the template marks every value to fill as {{...}}
 
 
 class Parser(HTMLParser):
@@ -132,8 +134,10 @@ def split_literals(expr):
 def guess_kind(text):
     """expr = OutSystems expression; js = JavaScript; text = plain text typed as-is (Text widget, label)."""
     t = text.strip()
-    if any(h in t for h in JS_HINTS):
+    if any(h in t for h in JS_HINTS) or JS_COMMENT.search(t):
         return 'js'
+    if re.fullmatch(r"[A-Za-z][\w']*[?!.]", t):  # one word of prose, e.g. Continue?
+        return 'text'
     if re.search(r'\b(and|or|not|True|False)\b|\w\.\w|\u2212', t):
         return 'expr'
     if ' ' in t and not re.search(r'["()+=<>\[\]]', t):
@@ -177,9 +181,13 @@ def check_expr(text, line, conventions, errs, warns):
         warns.append(f'{where}: version suffix in a name or class (convention: restyle in place, no v2 / v3 names)')
 
 
-def check(path, conventions=True):
-    with open(path, encoding='utf-8') as f:
-        src = f.read()
+def check(path, conventions=False):
+    try:
+        with open(path, encoding='utf-8-sig') as f:  # -sig: tolerate a BOM from Windows editors
+            src = f.read()
+    except (OSError, UnicodeDecodeError) as e:
+        print(f'{path}: cannot read ({e})')
+        return False
     p = Parser()
     p.feed(src)
     p.close()
@@ -254,10 +262,11 @@ def check(path, conventions=True):
 def main(argv=None):
     ap = argparse.ArgumentParser(description='Check an ODC Studio build guide (HTML).')
     ap.add_argument('files', nargs='+')
-    ap.add_argument('--no-conventions', action='store_true', help='skip the opinionated convention warnings')
+    ap.add_argument('--conventions', action='store_true',
+                    help='also warn about version suffixes in names and "replaced by" notes (opinionated)')
     ap.add_argument('--version', action='version', version=__version__)
     a = ap.parse_args(argv)
-    results = [check(f, not a.no_conventions) for f in a.files]
+    results = [check(f, a.conventions) for f in a.files]
     return 0 if all(results) else 1
 
 

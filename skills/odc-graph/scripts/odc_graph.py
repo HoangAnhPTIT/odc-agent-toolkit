@@ -7,9 +7,11 @@ For a paged result pass every page file, in order.
 
   python odc_graph.py GRAPH --list                         # screens, blocks, actions, structures
   python odc_graph.py GRAPH --text --only "Orders\\OnSave"  # outline of matching elements
-  python odc_graph.py GRAPH --html graph.html              # browsable page with a filter box
-  python odc_graph.py GRAPH --save-dir graph --name MyApp_rev12_root-Orders   # keep the raw files
-  python odc_graph.py GRAPH --guess "[^a-z0-9]+" --text    # confirm a literal that is stored as a hash
+  python odc_graph.py GRAPH --html /tmp/graph.html         # browsable page with a filter box
+  python odc_graph.py GRAPH --save-dir /tmp/graph --name MyApp_rev12_root-Orders   # keep the raw files
+  python odc_graph.py GRAPH --guess "expected text" --text # confirm a literal that is stored as a hash
+
+Raw graphs hold an app's model: keep saved files out of version control.
 
 Text literals are kept either as plain `TextValue` or only as `TextLength` + `TextHash`, where the hash
 is the first 10 hex digits of the SHA-1 of the UTF-8 text. Hashes are matched against quoted strings
@@ -28,7 +30,7 @@ import shutil
 import sys
 from collections import defaultdict
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -74,8 +76,11 @@ def load(paths):
     """Return (graph dict, header of the last page, joined XRE text or None, joined graphviz text)."""
     headers, xre, dot = [], [], []
     for path in paths:
-        with open(path, encoding='utf-8') as f:
-            raw = json.load(f)
+        try:
+            with open(path, encoding='utf-8-sig') as f:  # -sig: files saved by Windows tools often start with a BOM
+                raw = json.load(f)
+        except (OSError, ValueError) as e:
+            sys.exit(f'error: cannot read {path} as JSON ({e})')
         if isinstance(raw, dict) and 'nodes' in raw:  # already-joined .xre.json
             if len(paths) > 1:
                 sys.exit('error: pass a joined .xre.json on its own')
@@ -425,9 +430,19 @@ def html_out(G, cs, path, title, keep_defaults=False):
     print('wrote', path, len(cs), 'elements')
 
 
+def safe_name(name):
+    """A file name that works on Windows, macOS and Linux (roots like Orders\\OnSave contain separators)."""
+    return re.sub(r'[\\/:*?"<>|\s]+', '_', name).strip('._') or 'graph'
+
+
 def save(paths, header, body, dot, save_dir, name):
     os.makedirs(save_dir, exist_ok=True)
-    base = os.path.join(save_dir, name or f'{header.get("app_key", "graph")}_rev{header.get("revision", "")}_root-{header.get("root") or "all"}')
+    default = f'{header.get("app_key", "graph")}_rev{header.get("revision", "")}_root-{header.get("root") or "all"}'
+    base = os.path.join(save_dir, safe_name(name or default))
+    if body is None:  # input was already a joined .xre.json
+        shutil.copyfile(paths[0], base + '.xre.json')
+        print('saved', base + '.xre.json')
+        return
     for k, p in enumerate(paths, 1):
         suffix = '' if len(paths) == 1 else f'.page{k}'
         shutil.copyfile(p, f'{base}{suffix}.mcp-response.json')

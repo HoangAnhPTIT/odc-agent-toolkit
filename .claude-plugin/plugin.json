@@ -2,7 +2,7 @@
   "name": "odc-agent-toolkit",
   "displayName": "ODC Agent Toolkit",
   "description": "Field-tested workflow, graph reader and Studio build-guide kit for working on OutSystems Developer Cloud (ODC) apps with Claude Code and the OutSystems MCP server. Includes Mobile app support (read-only over MCP).",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "HoangAnhPTIT",
     "url": "https://github.com/HoangAnhPTIT"
