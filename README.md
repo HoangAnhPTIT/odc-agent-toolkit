@@ -21,7 +21,7 @@ Also: `rules/odc-workflow.md` (an optional always-on summary to copy into `~/.cl
 Lessons from real ODC projects that the vendor skill does not cover:
 
 - **Mobile apps cannot be edited over MCP.** `mentor_load_asset` accepts WebApplication, Agent, Library and Workflow only. Context lookups list a Mobile app's elements, but `context_graph` is the only way to read its logic and UI, and changes have to be built by hand in ODC Studio.
-- **A successful Mentor turn is not proof.** We have seen Mentor drop a `+ X` term from an expression it rewrote, and store a regex `\p{L}` as `\\p{L}`, which turned a search into "match almost everything". Reading the published graph caught both.
+- **A successful Mentor turn is not proof.** We have seen Mentor drop a `+ X` term from an expression it rewrote, and store a regex `\p{L}` as `\\p{L}`, which turned a search into "match almost everything". Both turns reported success: a tester caught the regex, and reading the published graph caught the dropped term.
 - **Libraries are not deployed.** They are released in the ODC Portal and travel inside each consumer, which must update the dependency and publish.
 - **Raw graphs are unreadable**, and literals may be stored only as SHA-1 prefixes.
 - **Hand-typed Studio values break in small ways**: a curly quote, a `−` instead of `-`, an unescaped `<` in HTML.
