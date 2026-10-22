@@ -22,7 +22,7 @@ Lessons from real ODC projects that the vendor skill does not cover:
 
 - **Mobile apps cannot be edited over MCP.** `mentor_load_asset` accepts WebApplication, Agent, Library and Workflow only. Context lookups list a Mobile app's elements, but `context_graph` is the only way to read its logic and UI, and changes have to be built by hand in ODC Studio.
 - **A successful Mentor turn is not proof.** We have seen Mentor drop a `+ X` term from an expression it rewrote, and store a regex `\p{L}` as `\\p{L}`, which turned a search into "match almost everything". Both turns reported success: a tester caught the regex, and reading the published graph caught the dropped term.
-- **Libraries are not deployed.** They are released in the ODC Portal and travel inside each consumer, which must update the dependency and publish.
+- **Libraries are not deployed.** They are released (ODC Portal, or the Mentor session) and travel inside each consumer, which must update the dependency and publish.
 - **Raw graphs are unreadable**, and literals may be stored only as SHA-1 prefixes.
 - **Hand-typed Studio values break in small ways**: a curly quote, a `−` instead of `-`, an unescaped `<` in HTML.
 
@@ -55,7 +55,7 @@ From a local clone (development): `/plugin marketplace add /path/to/odc-agent-to
 Ask in plain language; the skills apply themselves:
 
 - "Read the Orders screen of `<app>` and explain how the search works." Reads the graph and summarises it.
-- "Fix the search in library `<lib>`, publish it and check the published version." Runs the Mentor loop, asks you right before publishing, checks `publish_status` and the published graph, and lists the release steps left for you.
+- "Fix the search in library `<lib>`, publish it and check the published version." Runs the Mentor loop, asks you right before publishing, checks `publish_status` and the published graph, releases a version when you ask, and lists the consumer steps left for you.
 - "Write a Studio guide to add order notes to the mobile app." Reads the current revision and writes `<topic>-guide.html` from the template, then checks it.
 
 The scripts also work on their own, from a clone of this repository (an installed plugin keeps its copy under `~/.claude/plugins/cache/`):

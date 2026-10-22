@@ -30,7 +30,7 @@ import shutil
 import sys
 from collections import defaultdict
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')

@@ -1,6 +1,6 @@
 ---
 name: odc-studio-guide
-description: Write an HTML build guide that a developer follows in ODC Studio to make a change by hand — required for OutSystems Mobile apps (Mentor cannot load them) and for work only ODC Studio or the Portal can do (managing dependencies, releasing a library). Ships a template (click any value to copy it, copy progress kept per browser, automatic index), a checker that catches broken expressions and pages before hand-over, and a headless screenshot helper.
+description: Write an HTML build guide that a developer follows in ODC Studio to make a change by hand — required for OutSystems Mobile apps (Mentor cannot load them) and for work only ODC Studio or the Portal can do (managing dependencies). Ships a template (click any value to copy it, copy progress kept per browser, automatic index), a checker that catches broken expressions and pages before hand-over, and a headless screenshot helper.
 ---
 
 # ODC Studio build guide
@@ -13,7 +13,7 @@ Files of this skill (`<skill-dir>` = the base directory shown when this skill lo
 
 ## When to use
 - Any change to a **MobileApplication**: `mentor_load_asset` accepts only WebApplication, Agent, Library, Workflow.
-- Work only ODC Studio or the Portal can do: managing an app's dependencies, releasing a library, end-user groups, settings, and anything Mentor failed to do.
+- Work only ODC Studio or the Portal can do: managing an app's dependencies, end-user groups, settings, and anything Mentor failed to do. (A library can be released from the Mentor session: skill `odc-workflow`.)
 - Web apps and libraries: edit through Mentor by default (skill `odc-workflow`); write a guide only when the user wants to build it themselves or Mentor cannot do it.
 
 ## Steps

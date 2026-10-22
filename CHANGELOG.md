@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3 (2026-10-22)
+
+- `odc-workflow`: a library can be released from the Mentor session (prompt "Release the published revision N as version X.Y.Z…"), checked with the revision's `tag` in `app_revisions`; Mentor's answer may call a successful release uncertain (observed). Mentor may drop requested node Labels; a publish can auto-merge another user's revision (`publishAutoMerged`).
+- `odc-studio-guide`, README, rule: releasing a library is no longer listed as Portal-only.
+
 ## 0.1.2 (2026-10-22)
 
 From a blind field test: an agent rebuilt a real Mobile-app feature guide using only this plugin.

@@ -17,12 +17,12 @@ These rules complement the vendor skill `outsystems:outsystems` (auth, tool cata
 | Asset type | Read | Edit | Publish | Other stages | Verify |
 |---|---|---|---|---|---|
 | WebApplication | context lookups, `context_graph` | Mentor | through the Mentor session | `deploy_start` (`from_env` required unless you pin `build_key` + `revision`) | `publish_status` = success, then `env_app` revision = the publication's `applicationRevision`, then the graph |
-| LowCodeLibrary | same | Mentor | through the Mentor session | **No deployment.** Libraries only get debug builds; a user with the Release permission **releases** a revision in the ODC Portal (version + release notes), then each consumer updates the dependency in ODC Studio and publishes. The library reaches other stages inside its consumers | `publish_status`, then the graph (libraries are not in `env_app`) |
+| LowCodeLibrary | same | Mentor | through the Mentor session | **No deployment.** Libraries only get debug builds; a published revision becomes a version when it is **released** (version + release notes): in the ODC Portal, or in the Mentor session (section 3, step 10). Then each consumer updates the dependency in ODC Studio and publishes. The library reaches other stages inside its consumers | `publish_status`, then the graph (libraries are not in `env_app`); a release: `app_revisions` shows the `tag` on the revision |
 | MobileApplication | context lookups, `context_graph` | **No.** `mentor_load_asset` accepts only WebApplication, Agent, Library, Workflow. Write a Studio guide (skill `odc-studio-guide`) | the user, in ODC Studio | `deploy_start`, only when asked, after the user published | the graph of the new revision, `env_app` |
 | Workflow | context lookups, `context_graph` | Mentor | through the Mentor session | `deploy_start` with `build_key` + `revision` from `build_list` (auto-resolution cannot see workflow deployments: `asset_not_deployed_in_source_env`) | `env_app` errors by design: `asset_type_not_listable_by_env_app` means deployed |
 | External library (.NET) | `extlib_contents` | your code | `extlib_upload` → `extlib_publish` | inside consumers | `extlib_status` |
 
-Not possible over MCP: releasing a library, managing an app's dependencies (Mentor does not support it), publishing without a Mentor edit, deleting an app. Turn these into steps for the user, in the guide or the answer.
+Not possible over MCP: managing an app's dependencies (Mentor does not support it), publishing without a Mentor edit, deleting an app. Turn these into steps for the user, in the guide or the answer.
 
 Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `building-apps/libraries/libraries.md`, `agentic-development/outsystems-mcp/evolve-app.md`, `agentic-development/ai-limitations.md`; the descriptions of `mentor_load_asset`, `deploy_start`, `publish_status`, `env_app`.
 
@@ -36,7 +36,7 @@ Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `buildin
 7. **Verify what was stored. Always; do not trust the turn summary.** `context_graph` with the same root: the header `revision` (not `latest_revision`) must equal the new revision; compare every expression you asked for and the node order; confirm hashed literals with `--guess`. *Observed:* Mentor dropped a `+ X` term while rewriting an Assign it was asked to change, and stored a regex `\p{L}` as `\\p{L}`, which silently turned a search into "match almost everything".
 8. Wrong: fix it in the same session, confirm, publish, verify again. Never publish while the previous publish of the same asset is not terminal.
 9. `mentor_close_session` when done, or when the session talks about elements that do not exist (close it, open a new one).
-10. Library: tell the user the remaining steps (Release → update the dependency in each consumer → publish the consumer) and that consumers do not have the change until then.
+10. Library: release when the user asks for it (confirm first, like a publish): in the same session, `mentor_prompt` "Release the published revision <N> of this library as version <X.Y.Z>. Release notes: …". *Observed:* the release lands while Mentor's answer may still call the outcome uncertain; `app_revisions` shows `tag: X.Y.Z` on revision N, and that is the check. Then tell the user what is left (update the dependency in each consumer → publish the consumer) and that consumers do not have the change until then.
 11. Test real behaviour when you can (a request and its response, the running app) and say what you did not test.
 
 ## 4. Mobile apps: read-only over MCP
@@ -74,7 +74,9 @@ Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `buildin
 - Mobile apps have no app Settings: "In mobile apps, extensibility settings replace ODC app settings" (docs-odc `building-apps/mobile/configuring-mobile-apps.md`). Do not plan a Setting as a switch or mock in a Mobile app.
 - *Observed:* Layout placeholders (Title, HeaderRight …) wrap their content in their own `div`; in the header's flex row it keeps its content width, so an ellipsis inside it needs `min-width: 0` on that div.
 - Client variables are not indexed by the context lookups and show as `?` in graph expressions; read their names from Assign / If `DisplayName` (skill `odc-graph`). Check which flows set them before relying on one: a variable set in only one flow (for example only by a picker) is empty for users who never pass through it.
-- Library revision numbers grow with every publish; a version exists only after a Release. Consumers see a "library updates available" prompt when opened in ODC Studio (docs-odc `building-apps/libraries/libraries.md`).
+- *Observed:* Mentor may drop the **Label** you ask for on a new If / Assign; the graph then shows the condition as the name (`True?`). Do not point a guide or a later prompt at a label before the graph shows it.
+- *Observed:* when someone else published the asset while your session was open, the publish run carries `publishAutoMerged` (the other revision) before `publishAccepted`. Tell the user, and read the graph of the new revision, not only your own elements.
+- Library revision numbers grow with every publish; a version exists only after a Release (the revision's `tag` in `app_revisions`). Consumers see a "library updates available" prompt when opened in ODC Studio (docs-odc `building-apps/libraries/libraries.md`).
 
 ## 10. Optional conventions
 Apply these only when the user or the project asks for them:

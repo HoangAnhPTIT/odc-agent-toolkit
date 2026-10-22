@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 CANDIDATES = [
     r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
