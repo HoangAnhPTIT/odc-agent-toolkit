@@ -20,7 +20,7 @@ import re
 import sys
 from html.parser import HTMLParser
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')

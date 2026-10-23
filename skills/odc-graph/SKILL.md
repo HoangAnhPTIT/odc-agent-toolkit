@@ -55,6 +55,7 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 - The answer can be an older stored revision: the header then carries a `revision_note`. Trust the graph only when the header `revision` (not `latest_revision`) equals the revision you expect.
 - A rooted graph holds the root and what it references, not the whole app. Say which root you read.
 - It is the model, not the runtime: it cannot tell you what a regex, a query or an API returns. Test that with real requests.
+- It does not show a screen's Required Scripts, and a JavaScript node shows only its code, not which actions its `$actions` calls reach or which arguments the runtime passes. When a JavaScript feature "does not work" after a publish, read the deployed JavaScript (*observed*, public static files of the app): fetch `https://<env-domain>/<AppPath>/`, take `scripts/_osbundle-<App>.index__….js` from the page, find `MainFlow.<Screen>` in it and fetch the `_oschunk-….js` it imports. That chunk names the scripts the screen loads (`UserScripts.<name>`, compare `scripts/<App>.UserScripts.<name>.js` with your file) and holds each JavaScript node compiled, with the actions handed to `$actions` and the arguments of every call. Save the files outside the repository.
 
 ## 5. Verify a publish (always)
 

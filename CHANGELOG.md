@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 (2026-10-23)
+
+From a field mistake that cost a Studio round trip (a "leave without saving?" guard on a Mobile app screen).
+
+- `odc-workflow` section 9, new "Client actions and JavaScript": screen and block client actions have no output parameters; pass every input when JavaScript calls `$actions.X()` (missing mandatory Booleans ran as False, no error); a JavaScript node's `$parameters` are a copy, so a callback that needs live screen state calls a synchronous screen action that answers through the script; how ODC routes every navigation (history POP from the Android back button included) through `registerNavigationHandler`, then the back-handler queue.
+- `odc-studio-guide`: say where each client action lives and never give a screen action an output; JavaScript calling `$actions` passes every input; write and verify both If branches.
+- `odc-graph`: read the deployed JavaScript (bundle → screen chunk) to check Required Scripts and compiled JavaScript nodes when a JavaScript feature does not work.
+
 ## 0.1.3 (2026-10-22)
 
 - `odc-workflow`: a library can be released from the Mentor session (prompt "Release the published revision N as version X.Y.Z…"), checked with the revision's `tag` in `app_revisions`; Mentor's answer may call a successful release uncertain (observed). Mentor may drop requested node Labels; a publish can auto-merge another user's revision (`publishAutoMerged`).
