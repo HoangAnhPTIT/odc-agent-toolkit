@@ -246,6 +246,16 @@ class OdcGraphTest(unittest.TestCase):
             run([p, '--list'])
         self.assertIn('cannot read', str(cm.exception))
 
+    def test_unresolved_reference_to_minus_one(self):
+        # observed: a call to a built-in function (GenerateGuid) whose ReferedObject edge points at -1
+        b = Builder()
+        last = b.node('INRBuiltinEvent', DisplayName='On Change')
+        call = b.node('Call')
+        b.edge(call, -1, 'ReferedObject', parent=False)
+        g = odc_graph.Graph(b.graph())
+        self.assertEqual(g.expr(call), '?()')
+        self.assertEqual(g.name(last), 'On Change')
+
     def test_no_match_message(self):
         err = io.StringIO()
         with contextlib.redirect_stderr(err):

@@ -130,6 +130,8 @@ class Graph:
         return k[0][0] if k else None
 
     def name(self, i):
+        if i < 0:  # edge to -1: a reference the graph left out (built-in functions such as GenerateGuid)
+            return '?'
         n = self.N[i]
         if n['_type'] == 'Text':  # reference the graph could not resolve (client variable, static entity
             return '?'            # record, element of another module): the Text node is not its name
