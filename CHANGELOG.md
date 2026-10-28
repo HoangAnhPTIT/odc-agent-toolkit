@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 (2026-10-28)
+
+- `odc-workflow` section 9, new "Transactions" fact: one transaction per request, `CommitTransaction` / `AbortTransaction` system actions (AbortTransaction has no docs-odc page), return a business error with assign + `AbortTransaction` + End instead of raising and catching a user exception in the same action, keep handlers for errors you cannot test for first (`DatabaseException`).
+
 ## 0.1.6 (2026-10-28)
 
 - `odc-workflow` section 10, new optional convention: a change to a guide already handed over also produces `fix_<guide-name>.html` with only the delta (baseline revisions, what changed, steps to do or undo, tests for the changed parts).
