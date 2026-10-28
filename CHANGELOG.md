@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8 (2026-10-28)
+
+- `odc-workflow` section 9, transactions: commit only after the whole unit of work (an early commit after creating a parent record leaves it behind on a later error); a unique-index race needs no early commit on PostgreSQL; a service action commits when it ends; unit tests roll back with `AbortTransaction` in the test endpoint instead of a commit switch on the production action.
+
 ## 0.1.7 (2026-10-28)
 
 - `odc-workflow` section 9, new "Transactions" fact: one transaction per request, `CommitTransaction` / `AbortTransaction` system actions (AbortTransaction has no docs-odc page), return a business error with assign + `AbortTransaction` + End instead of raising and catching a user exception in the same action, keep handlers for errors you cannot test for first (`DatabaseException`).
