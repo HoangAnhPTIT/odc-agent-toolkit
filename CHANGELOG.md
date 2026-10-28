@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 (2026-10-28)
+
+- `odc-workflow` section 10, new optional convention: a change to a guide already handed over also produces `fix_<guide-name>.html` with only the delta (baseline revisions, what changed, steps to do or undo, tests for the changed parts).
+- `odc-studio-guide` step 10: how to change a handed-over guide (in place, plus the fix file under that convention).
+
 ## 0.1.5 (2026-10-26)
 
 - `odc-workflow` section 9, new "SQL nodes: write Aurora PostgreSQL": queries on the app's own entities run PostgreSQL syntax (ANSI-92 only with external entities); names, `LIMIT`, `||`, INSERT / UPDATE without entity prefix, case- and accent-insensitive collation (`LIKE` needs `caseaccent_normalize`), list parameters as JSON expanded with `json_array_elements_text` and cast to the column type, empty list as `[]`, bounded results, indexes, no query in a loop, Test Query differs from runtime. Section 5: give Mentor the whole PostgreSQL text and read the stored SQL back.

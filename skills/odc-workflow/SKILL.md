@@ -98,6 +98,7 @@ Apply these only when the user or the project asks for them:
 - Deliver guides and reports as complete HTML files in the project folder, so they open in a browser and live in git.
 - Do not encode design rounds in model names (classes, blocks, structures, actions: no `--v3`, `OrderLineV3`); restyle in place or use a descriptive modifier (`--pending`). A version may appear in a document's file name.
 - In documents you write, when a new section replaces an old one, replace it in place instead of keeping both with a "replaced by" note. This is about your own documents, never about deleting app elements.
+- When you change a guide the user may already have built from, update it in place and also write `fix_<guide-name>.html` next to it with only the delta: baseline (old and new app / Core revision), a table of what changed (section, before, after), then just the steps to do or undo and the tests for the changed parts. A newer delta for the same guide replaces the old fix file (git keeps history).
 - `check_guide.py --conventions` warns about the first two in guides.
 
 ## 11. Tools in this plugin
