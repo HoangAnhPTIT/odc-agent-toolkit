@@ -40,8 +40,13 @@ OPS = {'Plus': '+', 'Minus': '-', 'Mul': '*', 'Div': '/', 'Eq': '=', 'NEq': '<>'
        'LT': '<', 'LE': '<=', 'And': 'and', 'Or': 'or', 'Not': 'not', 'Neg': '-'}
 # Element types that own a flow (obj.Nodes) or a widget tree. Reactive Web and Mobile apps both use the
 # IMobileScreen / IMobileBlock types in current graphs; the others are kept for older or other app kinds.
+# Exposed REST methods and their OnAuthentication flow carry a namespaced type (observed in a Web app graph).
+REST = 'OutSystems.Plugin.RESTService.'
 CONTAINERS = ('IServerAction', 'IClientAction', 'IClientScreenAction', 'IDataAction', 'IServiceAction',
-              'IMobileScreen', 'IMobileBlock', 'IWebScreen', 'IWebBlock', 'IScreen', 'IBlock')
+              'IMobileScreen', 'IMobileBlock', 'IWebScreen', 'IWebBlock', 'IScreen', 'IBlock',
+              REST + 'RestServiceAction', REST + 'RestServiceAuthenticationFlow')
+# Not flows themselves, but named in the qualified name of what they hold (CoreTests\OrderPricing).
+QUALIFIERS = CONTAINERS + (REST + 'RestService',)
 UI = ('IMobileScreen', 'IMobileBlock', 'IWebScreen', 'IWebBlock', 'IScreen', 'IBlock')
 WIDGET_RELS = ('Widgets', 'TrueBranch', 'FalseBranch', 'PlaceholdersContent', 'Content')
 PROP_LABEL = {'Style': 'Style Classes', 'StyleClasses': 'Style Classes', 'OnClick': 'On Click', 'OnChange': 'On Change'}
@@ -49,7 +54,9 @@ DEFAULT_NOISE = {('Visible', 'True'), ('Enabled', 'True'), ('Width', '(fill pare
 
 
 def short(t):
-    """IIfNode -> IfNode, IMobileScreen -> MobileScreen (drop the leading I of a model interface name)."""
+    """IIfNode -> IfNode, IMobileScreen -> MobileScreen (drop the leading I of a model interface name),
+    OutSystems.Plugin.RESTService.RestServiceAction -> RestServiceAction (drop the namespace)."""
+    t = t.rsplit('.', 1)[-1]
     return t[1:] if len(t) > 1 and t[0] == 'I' and t[1].isupper() else t
 
 
@@ -162,7 +169,7 @@ class Graph:
         parts, cur, seen = [], i, set()
         while cur is not None and cur not in seen:
             seen.add(cur)
-            if self.N[cur]['_type'] in CONTAINERS:
+            if self.N[cur]['_type'] in QUALIFIERS:
                 parts.append(self.name(cur))
             cur = self.parent.get(cur)
         return '\\'.join(reversed(parts))

@@ -104,6 +104,18 @@ def sample_graph():
     ev_in = b.node('IInputParameter', Name='Code')
     b.edge(ev, ev_in, 'InputParameters', index=0)
     b.edge(ev_in, text_t, 'DataType', parent=False)
+    # Exposed REST API Api with method Ping(Req: Text): Start -> End (namespaced types, as in a Web app graph)
+    rest = 'OutSystems.Plugin.RESTService.'
+    api = b.node(rest + 'RestService', Name='Api')
+    ping = b.node(rest + 'RestServiceAction', Name='Ping')
+    b.edge(api, ping, 'Actions', index=0)
+    req = b.node(rest + 'RestServiceActionInput', Name='Req', IsMandatory=True)
+    b.edge(ping, req, 'InputParameters', index=0)
+    b.edge(req, text_t, 'DataType', parent=False)
+    p_start, p_end = b.node('IStartNode', Name='Start'), b.node('IEndNode', Name='End')
+    b.edge(ping, p_start, 'obj.Nodes', index=0)
+    b.edge(ping, p_end, 'obj.Nodes', index=1)
+    b.link(p_start, p_end, 'Sequence')
     # Structure Item(Name: Text)
     st = b.node('IStructure', Name='Item')
     b.edge(st, attr, 'Attributes', index=0)
@@ -180,6 +192,14 @@ class OdcGraphTest(unittest.TestCase):
         self.assertIn('MobileBlock', out)
         self.assertIn('ServerAction           Calc', out)
         self.assertIn('Structure              Item (1 attributes)', out)
+
+    def test_rest_method(self):
+        _, out = run([self.path, '--list'])
+        self.assertIn('RestServiceAction      Api\\Ping', out)
+        _, out = run([self.path, '--text', '--only', 'Api\\Ping'])
+        self.assertIn('=== RestServiceAction Api\\Ping', out)
+        self.assertIn('In     Req: Text mandatory', out)
+        self.assertIn('Start Start', out)
 
     def test_paged_answer_and_graphviz(self):
         half = len(self.xre) // 2

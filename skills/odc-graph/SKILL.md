@@ -23,7 +23,7 @@ The script lives next to this file: `<skill-dir>/scripts/odc_graph.py`, where `<
 ```bash
 G="<file the host saved>"            # several files for a paged answer, in order
 P="<skill-dir>/scripts/odc_graph.py"
-python "$P" "$G" --list                              # screens, blocks, actions, data actions, structures
+python "$P" "$G" --list                              # screens, blocks, actions, data actions, exposed REST methods, structures
 python "$P" "$G" --text --only "Orders\OnSave"       # outline: parameters, flow, every expression
 python "$P" "$G" --text --only OrderCard             # block: inputs, its own events, widget tree with Style Classes, handlers
 python "$P" "$G" --text --only OrderItem             # structure: attributes and types
@@ -33,6 +33,7 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 ```
 
 - `--only` matches a substring of the qualified name (`Screen\Action`), case-insensitive.
+- An exposed REST method is listed as `RestServiceAction  <API>\<Method>` and its OnAuthentication as `RestServiceAuthenticationFlow  <API>\OnAuthentication`; `--text --only <API>\<Method>` prints its flow like a server action.
 - `--save-dir` copies the response file(s) unchanged and writes the joined `.xre.json` (and `.dot` when you asked for `graphviz`). Name files `<App>_rev<revision>_root-<Root>`; the `header:` line gives the revision.
 - **Raw graphs are the client's model.** Pick `$OUT` outside the repository, or make sure git ignores it first: add `graph/`, `*.xre.json`, `*.mcp-response.json` to the project's `.gitignore`, or put a `.gitignore` containing `*` inside the output folder.
 - `--keep-defaults` also prints `Visible: True`, `Enabled: True`, `Width: (fill parent)`.

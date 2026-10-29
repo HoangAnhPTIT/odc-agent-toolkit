@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 (2026-10-29)
+
+- `odc-graph` script: exposed REST methods and their OnAuthentication flow (namespaced `OutSystems.Plugin.RESTService.*` types) are listed and outlined like server actions, named `<API>\<Method>`. Before, `--list` / `--text` skipped them.
+
 ## 0.1.8 (2026-10-28)
 
 - `odc-workflow` section 9, transactions: commit only after the whole unit of work (an early commit after creating a parent record leaves it behind on a later error); a unique-index race needs no early commit on PostgreSQL; a service action commits when it ends; unit tests roll back with `AbortTransaction` in the test endpoint instead of a commit switch on the production action.
