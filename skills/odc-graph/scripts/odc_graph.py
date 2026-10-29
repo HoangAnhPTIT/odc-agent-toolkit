@@ -187,10 +187,10 @@ class Graph:
         if t in ('Integer', 'Decimal', 'Boolean', 'LongInteger', 'Currency', 'Date', 'Time', 'DateTime'):
             return str(n.get('Value'))
         if t == 'Identifier':
-            return self.ref(i) or '?'
+            return (self.ref(i) or '?') + self.index_of(i)
         if t == 'CompoundIdentifier':
             nxt = self.child(i, 'IdentifierPart')
-            return (self.ref(i) or '?') + ('.' + self.expr(nxt) if nxt is not None else '')
+            return (self.ref(i) or '?') + self.index_of(i) + ('.' + self.expr(nxt) if nxt is not None else '')
         if t == 'Indexer':
             return self.expr(self.child(i, 'Root')) + '[' + self.expr(self.child(i, 'Index')) + ']'
         if t == 'BinaryOperation':
@@ -203,6 +203,12 @@ class Graph:
         if t.startswith('Reference') or self.ref(i):
             return self.ref(i) or self.name(i)
         return f'<{t}>'
+
+    def index_of(self, i):
+        """'[Pos]' when an identifier part is indexed: Agg.List[Pos].X stores the List part with an 'Index'
+        child, an Indexer whose 'Root' is the index expression (observed in a Web app graph)."""
+        idx = self.child(i, 'Index')
+        return '' if idx is None else '[' + self.expr(self.child(idx, 'Root')) + ']'
 
     def exprs_of(self, i, skip=()):
         """(relation, expression) for every ExpressionAST child of node i. Not only relationType=Parent

@@ -193,6 +193,28 @@ class OdcGraphTest(unittest.TestCase):
         self.assertIn('ServerAction           Calc', out)
         self.assertIn('Structure              Item (1 attributes)', out)
 
+    def test_indexed_list_part(self):
+        # Agg.List[Pos].Id: the List part carries an 'Index' child (Indexer whose Root is the index expression)
+        b = Builder()
+        agg = b.node('IAggregateNode', Name='Agg')
+        lst = b.node('RuntimeProperty', Name='List')
+        pos = b.node('ILocalVariable', Name='Pos')
+        attr = b.node('IEntityAttribute', Name='Id')
+        root = b.node('CompoundIdentifier')
+        b.edge(root, agg, 'ReferedObject', parent=False)
+        part = b.node('CompoundIdentifier')
+        b.edge(root, part, 'IdentifierPart')
+        b.edge(part, lst, 'ReferedRuntimeProp', parent=False)
+        idx = b.node('Indexer')
+        b.edge(part, idx, 'Index')
+        pos_id = b.node('Identifier')
+        b.edge(idx, pos_id, 'Root')
+        b.edge(pos_id, pos, 'ReferedObject', parent=False)
+        last = b.node('Identifier')
+        b.edge(part, last, 'IdentifierPart')
+        b.edge(last, attr, 'ReferedObject', parent=False)
+        self.assertEqual(odc_graph.Graph(b.graph()).expr(root), 'Agg.List[Pos].Id')
+
     def test_rest_method(self):
         _, out = run([self.path, '--list'])
         self.assertIn('RestServiceAction      Api\\Ping', out)

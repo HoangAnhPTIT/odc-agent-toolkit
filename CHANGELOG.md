@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.10 (2026-10-29)
+
+- `odc-graph` script: an indexed list in an expression (`Agg.List[Pos].X`) keeps its `[Pos]`; before, expressions rendered from the tree (arguments, conditions) dropped it and read like `Agg.List.X`.
+
 ## 0.1.9 (2026-10-29)
 
 - `odc-graph` script: exposed REST methods and their OnAuthentication flow (namespaced `OutSystems.Plugin.RESTService.*` types) are listed and outlined like server actions, named `<API>\<Method>`. Before, `--list` / `--text` skipped them.
