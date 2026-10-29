@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.11 (2026-10-29)
+
+- `odc-workflow` section 9, transactions: `Get<Entity>` / `Get<Entity>ForUpdate` raise an exception for a missing Id (observed message `... with key 'inParamId' was not found.`), so they cannot check existence; lock and check in one SQL node `SELECT ... FOR UPDATE` instead of an aggregate plus `Get<Entity>ForUpdate` or a catch-all handler.
+
 ## 0.1.10 (2026-10-29)
 
 - `odc-graph` script: an indexed list in an expression (`Agg.List[Pos].X`) keeps its `[Pos]`; before, expressions rendered from the tree (arguments, conditions) dropped it and read like `Agg.List.X`.
