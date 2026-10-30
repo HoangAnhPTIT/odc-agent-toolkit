@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.13 (2026-10-30)
+
+- `odc-workflow` section 9, transactions: check before you write. Every check that can reject the request runs before the first write; how to spot a write followed by `If …Failed` → `AbortTransaction` in the outline, and what moving a check-and-log helper up does to log order.
+- `odc-workflow` section 9: a single-entity aggregate's `List` converts implicitly to `<Entity> List`; pass it directly instead of copying it with For Each + `ListAppend` (observed: stored as `mapTo { }`, 0 errors).
+
 ## 0.1.12 (2026-10-30)
 
 - `odc-workflow` section 5: readable flows. Ask Mentor for named empty Assign nodes as join points (one per phase, plus one before a loop's return), the main path in one column and branches to the right; a far `<- back to X` in the outline is the sign of a flow that needs it.
