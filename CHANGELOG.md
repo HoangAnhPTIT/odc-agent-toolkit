@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12 (2026-10-30)
+
+- `odc-workflow` section 5: readable flows. Ask Mentor for named empty Assign nodes as join points (one per phase, plus one before a loop's return), the main path in one column and branches to the right; a far `<- back to X` in the outline is the sign of a flow that needs it.
+
 ## 0.1.11 (2026-10-29)
 
 - `odc-workflow` section 9, transactions: `Get<Entity>` / `Get<Entity>ForUpdate` raise an exception for a missing Id (observed message `... with key 'inParamId' was not found.`), so they cannot check existence; lock and check in one SQL node `SELECT ... FOR UPDATE` instead of an aggregate plus `Get<Entity>ForUpdate` or a catch-all handler.

@@ -48,6 +48,11 @@ Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `buildin
 - One change per turn. Name the real elements (action, node, variable) as the graph shows them. Give the exact expression text. Add "Do not change any other node, variable or expression", "Do not publish", and "Report the exact stored expression" for anything that matters.
 - Keep raw backslashes out of what you send: OutSystems text literals have no escape sequences, and Mentor may double a backslash (*observed*). When a value needs one, build it with `Chr(92)`, e.g. `"[^" + Chr(92) + "p{L}" + Chr(92) + "p{N}]+"`. A backslash-free regex is simpler but not equivalent: after `ToLower`, `[^a-z0-9]+` treats accented and non-Latin letters as separators. Pick deliberately, and check the stored value with `--guess`.
 - SQL node: send the whole query as Aurora PostgreSQL text (section 9, "SQL nodes"), with the parameter names and types and the output structure. Read the stored SQL back from the graph after the publish.
+- Readable flows. A branch that connects back into a node of another phase (an `ApplyEdit` that jumps to a `LogEdit` far up, an If's False that skips to a later phase) draws arrows across the whole canvas, and nobody can review or maintain it. In the `odc-graph` outline, a `<- back to X` where X is far from the branch is the sign. When a flow has branches, ask Mentor for:
+  - named empty Assign nodes (no assignments) as join points, so each phase ends in one node that every branch of the phase reaches (`AfterDecision`, `EditJoin`, `NextLine` before the loop's return); the next phase starts from that node;
+  - the main path in one vertical column, each If's True-branch nodes in a column to its right, error / conflict Assign + End further right, level with their If;
+  - "Behaviour must stay exactly the same" when you only rewire an existing flow; then compare the outline before and after: only connectors and the new empty Assigns may differ.
+  The `odc-graph` outline does not show canvas positions: ask the user to check the layout in ODC Studio.
 - Describe only what changes, never the whole app again (Mentor rebuilds or duplicates what you restate).
 - Mentor does not manage dependencies (docs `ai-limitations.md`). When the change needs a library the asset does not reference yet, the user adds it in ODC Studio first.
 

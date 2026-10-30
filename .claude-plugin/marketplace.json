@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Community tools for working on OutSystems Developer Cloud (ODC) apps with Claude Code. Not affiliated with OutSystems.",
-    "version": "0.1.11"
+    "version": "0.1.12"
   },
   "plugins": [
     {
       "name": "odc-agent-toolkit",
       "source": "./",
       "description": "Field-tested workflow, graph reader and Studio build-guide kit for OutSystems Developer Cloud (ODC) with the OutSystems MCP server. Includes Mobile app support (read-only over MCP).",
-      "version": "0.1.11",
+      "version": "0.1.12",
       "author": {
         "name": "HoangAnhPTIT"
       },
