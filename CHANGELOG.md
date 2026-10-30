@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.14 (2026-10-30)
+
+- `odc_graph.py` 0.1.5: a For Each prints its `Start Index` and `Maximum Iterations` when set (before, only `Record List` showed, so an in-memory page over a list could not be checked from the outline).
+
 ## 0.1.13 (2026-10-30)
 
 - `odc-workflow` section 9, transactions: check before you write. Every check that can reject the request runs before the first write; how to spot a write followed by `If …Failed` → `AbortTransaction` in the outline, and what moving a check-and-log helper up does to log order.

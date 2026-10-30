@@ -30,7 +30,7 @@ import shutil
 import sys
 from collections import defaultdict
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -243,6 +243,9 @@ class Graph:
                 lines.append('Node text: ' + dn)
         elif t == 'IForEachNode':
             lines.append('Record List: ' + self.expr(self.child(i, 'RecordList')))
+            for rel, label in (('StartIndex', 'Start Index'), ('MaximumIterations', 'Maximum Iterations')):
+                if self.child(i, rel) is not None:  # only when set; empty = from 0, no limit
+                    lines.append(f'{label}: ' + self.expr(self.child(i, rel)))
         elif t == 'IJavaScriptNode':
             lines += [f'{k} = {v}' for k, v in self.args(i)]
             lines.append('JS: ' + (n.get('JsSourceText') or ''))

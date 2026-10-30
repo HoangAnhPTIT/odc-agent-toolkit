@@ -215,6 +215,27 @@ class OdcGraphTest(unittest.TestCase):
         b.edge(last, attr, 'ReferedObject', parent=False)
         self.assertEqual(odc_graph.Graph(b.graph()).expr(root), 'Agg.List[Pos].Id')
 
+    def test_for_each_start_index_and_max_iterations(self):
+        # observed (Core rev 114): ForEach carries StartIndex / MaximumIterations ExpressionAST children
+        b = Builder()
+        fe = b.node('IForEachNode', Label='EachLine')
+        lst = b.node('ILocalVariable', Name='Lines')
+        si = b.node('IInputParameter', Name='StartIndex')
+        for rel, target in (('RecordList', lst), ('StartIndex', si)):
+            ast = b.node('ExpressionAST')
+            b.edge(fe, ast, rel)
+            ident = b.node('Identifier')
+            b.edge(ast, ident, 'Root')
+            b.edge(ident, target, 'ReferedObject', parent=False)
+        g = odc_graph.Graph(b.graph())
+        self.assertEqual(g.node_lines(fe), ['Record List: Lines', 'Start Index: StartIndex'])
+        mx = b.node('ExpressionAST')
+        b.edge(fe, mx, 'MaximumIterations')
+        num = b.node('Integer', Value='10')
+        b.edge(mx, num, 'Root')
+        g = odc_graph.Graph(b.graph())
+        self.assertEqual(g.node_lines(fe)[-1], 'Maximum Iterations: 10')
+
     def test_rest_method(self):
         _, out = run([self.path, '--list'])
         self.assertIn('RestServiceAction      Api\\Ping', out)
