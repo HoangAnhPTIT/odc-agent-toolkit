@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.15 (2026-11-02)
+
+- `odc-workflow` section 5: a CloudFront WAF in front of `mentor_prompt` returns 403 "Request blocked" for SQL that looks like injection (`'' || '|' || CASE WHEN … THEN '1' ELSE '0' END`); how to find the trigger with no-change probes, and rewrites that pass.
+- `odc-workflow` section 9: no NULL in OutSystems; observed `JSON Serialize` (Serialize Default Values No drops every default attribute incl. `false` / `0` / `[]`, Yes writes `""` / `1900-01-01T00:00:00`); per-attribute Send Default Value (`DefaultValueBehavior`) only on structures owned by a consumed REST API, and `DontSend` leaves the attribute out, it does not send `null`.
+- `odc-workflow` section 9, SQL: `replace()` on column-derived text fails at runtime with 0A000 (nondeterministic collation); a Boolean in `json_build_object` comes out 0 / 1.
+
 ## 0.1.14 (2026-10-30)
 
 - `odc_graph.py` 0.1.5: a For Each prints its `Start Index` and `Maximum Iterations` when set (before, only `Record List` showed, so an in-memory page over a list could not be checked from the outline).
