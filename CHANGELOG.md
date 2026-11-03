@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.16 (2026-11-03)
+
+- `odc-workflow` section 9: an exposed REST API has one Send Default Values switch (`DefaultValueBehavior` on the `RestService`); with `DontSend` a response field holding `0` / `false` / `[]` is left out (observed: an API created by Mentor had `DontSend`). Check it when callers or tests read every field.
+
 ## 0.1.15 (2026-11-02)
 
 - `odc-workflow` section 5: a CloudFront WAF in front of `mentor_prompt` returns 403 "Request blocked" for SQL that looks like injection (`'' || '|' || CASE WHEN … THEN '1' ELSE '0' END`); how to find the trigger with no-change probes, and rewrites that pass.
