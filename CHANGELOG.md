@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.17 (2026-11-03)
+
+- `odc-workflow` section 9, SQL nodes: a Boolean attribute is not a PostgreSQL `boolean`; `COALESCE({E}.[Flag], FALSE)` fails at runtime (42804) while validation passes. Always compare `{E}.[Flag] = TRUE`. New rule: every new SQL node / server action gets a test that runs it on the real database before it is called done; move role checks out of the tested actions.
+- `odc-workflow` section 9: the app template's layout placeholders carry class `ph`, which collides with the Phosphor icon CSS (`.ph { font-family: Phosphor !important }`) and breaks their text; theme fix `.ph:not([class*="ph-"]) { font-family: inherit !important; }`.
+
 ## 0.1.16 (2026-11-03)
 
 - `odc-workflow` section 9: an exposed REST API has one Send Default Values switch (`DefaultValueBehavior` on the `RestService`); with `DontSend` a response field holding `0` / `false` / `[]` is left out (observed: an API created by Mentor had `DontSend`). Check it when callers or tests read every field.
