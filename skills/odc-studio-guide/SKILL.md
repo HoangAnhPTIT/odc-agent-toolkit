@@ -25,7 +25,7 @@ Files of this skill (`<skill-dir>` = the base directory shown when this skill lo
 6. **Check**: `python <skill-dir>/scripts/check_guide.py <topic>-guide.html` must report 0 ERROR. Read every warning. Add `--conventions` when the project follows the optional conventions of `odc-workflow` section 10. The checker validates syntax and page structure only: it does not know whether a name exists in the app (that is step 1 and step 9), and its "replaced by" check reads English only.
 7. New UI: build a preview page with the app's real CSS and look at it (section "Preview").
 8. **Hand over**: the file path, a short list of what the user must do, and the open questions with the assumption you built on.
-9. **After the user builds and publishes**: read the new revision's graph and compare it with the guide, item by item (names, expressions, Style Classes, node order). Report differences.
+9. **After the user builds and publishes**: read the new revision's graph and compare it with the guide, item by item (names, expressions, Style Classes, node order). When the guide has a CSS section, also compare the theme's style sheet with the CSS the guide gives (`context_themes`, skill `odc-graph` section 5). Report differences.
 10. **Changing a guide that was already handed over**: update it in place (no "replaced by" notes), then, when the project follows the optional conventions of `odc-workflow` section 10, also write `fix_<guide-name>.html` from the template with only the delta (what changed, what to do or undo, tests for the changed parts) and check it like any guide.
 
 ## Components (all in the template)

@@ -42,7 +42,7 @@ Sources: docs-odc `building-apps/publishing/publishing-your-assets.md`, `buildin
 ## 4. Mobile apps: read-only over MCP
 - Read logic and UI with `context_graph` (`root` = screen, block or action) and the `odc-graph` script. A screen root is often 2–3 MB on one line: never read or grep the raw file.
 - Changes become an HTML build guide for ODC Studio (skill `odc-studio-guide`); the user builds and publishes. Do not try Mentor.
-- After the user publishes, `app_list` / `app_revisions` shows the new revision: read its graph and compare it with the guide, item by item.
+- After the user publishes, `app_list` / `app_revisions` shows the new revision: read its graph and compare it with the guide, item by item. CSS is not in the graph: compare the theme's style sheet from `context_themes` (`full_fields: true`) with the project's CSS (skill `odc-graph` sections 4–5).
 
 ## 5. Prompting Mentor
 - One change per turn. Name the real elements (action, node, variable) as the graph shows them. Give the exact expression text. Add "Do not change any other node, variable or expression", "Do not publish", and "Report the exact stored expression" for anything that matters.

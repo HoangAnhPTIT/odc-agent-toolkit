@@ -57,6 +57,7 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 - A rooted graph holds the root and what it references, not the whole app. Say which root you read.
 - It is the model, not the runtime: it cannot tell you what a regex, a query or an API returns. Test that with real requests.
 - It does not show a screen's Required Scripts, and a JavaScript node shows only its code, not which actions its `$actions` calls reach or which arguments the runtime passes. When a JavaScript feature "does not work" after a publish, read the deployed JavaScript (*observed*, public static files of the app): fetch `https://<env-domain>/<AppPath>/`, take `scripts/_osbundle-<App>.index__….js` from the page, find `MainFlow.<Screen>` in it and fetch the `_oschunk-….js` it imports. That chunk names the scripts the screen loads (`UserScripts.<name>`, compare `scripts/<App>.UserScripts.<name>.js` with your file) and holds each JavaScript node compiled, with the actions handed to `$actions` and the arguments of every call. Save the files outside the repository.
+- It does not hold the theme's CSS. The app's theme style sheet comes from `context_themes` (`app` = asset key, `owned_only: false`, `full_fields: true`): the text is `data[].additionalData.styleSheet` (*observed*, about 200 KB, so the host saves the answer to a file: extract it with a short script, never read the raw file). The row's `timestamp` is when the theme was last saved, not a revision. A theme provided by a library shows with `owned_only: false` and its `producerAssetName`.
 
 ## 5. Verify a publish (always)
 
@@ -64,4 +65,5 @@ python "$P" "$G" --guess "expected literal" --text --only ComputeTotal  # confir
 2. `context_graph` with the edited element as `root`; the header `revision` must equal it and there must be no `revision_note` (on `graph_pending`, wait about a minute and call again).
 3. `--text --only <element>`: check every expression you asked for, node by node, and the flow order. Mentor can silently drop or rewrite part of an expression it touched.
 4. For literals stored as hashes, run `--guess "<expected text>"`: the value must print as text, not as `<text len … sha1 …>`.
-5. Report what you checked and what you could not check (runtime behaviour).
+5. When the change includes CSS (a guide's CSS section, a project `.css` file the user pastes into the theme), compare the theme too: read it with `context_themes` (section 4), normalise line endings, and diff it with the project file. Expect only the Theme Editor block at the top (`:root` variables) and app-specific paths (fonts, images under `/<AppPath>/`); any other difference means the paste is missing or stale. Do not report the CSS as unverifiable because the graph lacks it.
+6. Report what you checked and what you could not check (runtime behaviour).

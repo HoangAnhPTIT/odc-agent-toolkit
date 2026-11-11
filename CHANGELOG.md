@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.18 (2026-11-11)
+
+- `odc-graph` sections 4–5, `odc-studio-guide` step 9, `odc-workflow` section 4: the theme CSS is not in `context_graph`; read it with `context_themes` (`full_fields: true`, `additionalData.styleSheet`) and diff it with the project CSS whenever a change or guide includes CSS. Expected differences: the Theme Editor `:root` block and per-app paths.
+
 ## 0.1.17 (2026-11-03)
 
 - `odc-workflow` section 9, SQL nodes: a Boolean attribute is not a PostgreSQL `boolean`; `COALESCE({E}.[Flag], FALSE)` fails at runtime (42804) while validation passes. Always compare `{E}.[Flag] = TRUE`. New rule: every new SQL node / server action gets a test that runs it on the real database before it is called done; move role checks out of the tested actions.
