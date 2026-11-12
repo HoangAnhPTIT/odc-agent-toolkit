@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.19 (2026-11-12)
+
+- `odc-graph` script: a Switch node now prints each condition (`Condition n: <expr> -> <target>`) and walks its branches in evaluation order (`ISwitchCondition.Index`), `Otherwise` last. Before, conditions were missing and branches followed the edge order, so two revisions with the same Switch could look reordered in a diff. SKILL.md section 3 documents the structure.
+
 ## 0.1.18 (2026-11-11)
 
 - `odc-graph` sections 4–5, `odc-studio-guide` step 9, `odc-workflow` section 4: the theme CSS is not in `context_graph`; read it with `context_themes` (`full_fields: true`, `additionalData.styleSheet`) and diff it with the project CSS whenever a change or guide includes CSS. Expected differences: the Theme Editor `:root` block and per-app paths.

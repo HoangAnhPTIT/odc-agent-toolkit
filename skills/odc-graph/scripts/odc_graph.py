@@ -246,6 +246,11 @@ class Graph:
             for rel, label in (('StartIndex', 'Start Index'), ('MaximumIterations', 'Maximum Iterations')):
                 if self.child(i, rel) is not None:  # only when set; empty = from 0, no limit
                     lines.append(f'{label}: ' + self.expr(self.child(i, rel)))
+        elif t == 'ISwitchNode':
+            # each ISwitchCondition (Conditions child) holds Value (the expression), Target (first node of
+            # the branch) and Index (evaluation order; the edge order and DisplayName "Condition n" can differ)
+            for k, (cond, target) in enumerate(self.switch_conditions(i), 1):
+                lines.append(f'Condition {k}: {self.expr(self.child(cond, "Value"))} -> {self.name(target) if target is not None else "?"}')
         elif t == 'IJavaScriptNode':
             lines += [f'{k} = {v}' for k, v in self.args(i)]
             lines.append('JS: ' + (n.get('JsSourceText') or ''))
@@ -256,6 +261,12 @@ class Graph:
             lines += [f'{k} = {v}' for k, v in self.args(i)]
             lines += [f'{k}: {v}' for k, v in self.exprs_of(i)]
         return lines
+
+    def switch_conditions(self, i):
+        """[(ISwitchCondition, target node)] of a Switch, in evaluation order (the condition's Index)."""
+        conds = [t for t, _ in self.kids(i, 'Conditions')]
+        conds.sort(key=lambda c: int(self.N[c].get('Index') or 0))
+        return [(c, next((t for t, a in self.out[c] if a.get('_type') == 'Target'), None)) for c in conds]
 
     def flow(self, c):
         nodes = [t for t, a in self.out[c] if a.get('_type') == 'obj.Nodes']
@@ -273,6 +284,10 @@ class Graph:
             nxt = [(t, a.get('connectorType', '').replace('Links.', '')) for t, a in self.out[i] if a.get('_type') == 'Connector']
             rank = {'Cycle': 0, 'True': 0, 'Sequence': 1, 'False': 1, 'Otherwise': 2}
             nxt.sort(key=lambda x: rank.get(x[1], 1))
+            if self.N[i]['_type'] == 'ISwitchNode':  # walk the branches in evaluation order, labelled by number
+                order = {t: k for k, (_, t) in enumerate(self.switch_conditions(i), 1)}
+                nxt.sort(key=lambda x: (x[1] == 'Otherwise', order.get(x[0], 99)))
+                nxt = [(t, f'Condition {order[t]}' if ctype == 'Condition' and t in order else ctype) for t, ctype in nxt]
             for t, ctype in nxt:
                 branch = len(nxt) > 1 or ctype in ('Cycle', 'True', 'False')
                 walk(t, d + (1 if branch else 0), '' if ctype == 'Sequence' else ctype)

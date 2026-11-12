@@ -193,6 +193,38 @@ class OdcGraphTest(unittest.TestCase):
         self.assertIn('ServerAction           Calc', out)
         self.assertIn('Structure              Item (1 attributes)', out)
 
+    def test_switch_conditions_in_evaluation_order(self):
+        # Switch: ISwitchCondition children (Conditions) hold Value + Target + Index; the edge order differs
+        b = Builder()
+        act = b.node('IClientAction', Name='Pick')
+        x = b.node('ILocalVariable', Name='X')
+        b.edge(act, x, 'LocalVariables', index=0)
+        start, sw = b.node('IStartNode', Name='Start'), b.node('ISwitchNode', DisplayName='Switch')
+        first, second, other = (b.node('IEndNode', Name=n) for n in ('EndA', 'EndB', 'EndC'))
+        for i, n in enumerate((start, sw, first, second, other)):
+            b.edge(act, n, 'obj.Nodes', index=i)
+        b.link(start, sw, 'Sequence')
+        for edge_index, (cond_index, value, target) in enumerate(((1, 'b', second), (0, 'a', first))):
+            c = b.node('ISwitchCondition', Index=cond_index, DisplayName=f'Condition {cond_index + 1}')
+            b.edge(sw, c, 'Conditions', index=edge_index)
+            v = b.node('ExpressionAST')
+            b.edge(c, v, 'Value')
+            eq = b.node('BinaryOperation', Operator='Eq')
+            b.edge(v, eq, 'Root')
+            ident = b.node('Identifier')
+            b.edge(eq, ident, 'LeftOperand')
+            b.edge(ident, x, 'ReferedObject', parent=False)
+            b.edge(eq, b.node('Text', TextValue=value, TextHash=sha10(value)), 'RightOperand')
+            b.edge(c, target, 'Target', parent=False)
+        b.link(sw, second, 'Condition')
+        b.link(sw, other, 'Otherwise')
+        b.link(sw, first, 'Condition')
+        _, out = run([self.write('sw.xre.json', b.graph()), '--text', '--only', 'Pick'])
+        self.assertIn('Condition 1: (X = "a") -> EndA', out)
+        self.assertIn('Condition 2: (X = "b") -> EndB', out)
+        self.assertLess(out.index('[Condition 1] End EndA'), out.index('[Condition 2] End EndB'))
+        self.assertLess(out.index('[Condition 2] End EndB'), out.index('[Otherwise] End EndC'))
+
     def test_indexed_list_part(self):
         # Agg.List[Pos].Id: the List part carries an 'Index' child (Indexer whose Root is the index expression)
         b = Builder()
